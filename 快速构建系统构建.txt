@@ -1,0 +1,10 @@
+mkdir quick-build-antd
+yarn create umi
+
+
+yarn add numeral
+yarn add ajax-js
+yarn add react-icons
+yarn add react-zmage
+yarn add react-highlight-words
+yarn add react-helmet
