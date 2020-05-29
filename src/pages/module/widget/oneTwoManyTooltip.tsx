@@ -20,11 +20,15 @@ import { getFieldDefine } from '../grid/fieldsFactory';
  * 
  */
 
-const OneTowManyTooltip = ({ moduleName, parentid, childModuleName, fieldahead }:
+const OneTowManyTooltip = ({ moduleName, parentid, childModuleName, fieldahead, count }:
     {
-        moduleName: string, parentid: string, childModuleName: string, fieldahead: string
+        moduleName: string, parentid: string, childModuleName: string, fieldahead: string , count : number
     }): any => {
-    const [data, setData] = useState([]);
+    const array = []
+    for (let i=0;i<count ; i++)
+        array.push({});
+    const [data, setData] = useState(array);
+    console.log(data);
     const [loading , setLoading] = useState(true);
     useEffect(() => {
         fetchChildModuleData({

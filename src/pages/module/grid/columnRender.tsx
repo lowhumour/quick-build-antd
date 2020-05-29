@@ -69,14 +69,15 @@ export const OneToManyFieldRender = (value: any, record: Object, recno_: number,
     if (formScheme)
         return <Popover trigger='click'
             title={<span><span dangerouslySetInnerHTML={{ __html: record[moduleInfo.namefield] + ' 的 ' + fieldtitle }}></span>
-                <span style={{ float: "right",marginLeft:"30px" }}><a>新页面中打开</a></span></span>}
+                <span style={{ float: "right", marginLeft: "30px" }}><a>新页面中打开</a></span></span>}
             content={<>
-            {/* {record[moduleInfo.primarykey]}
+                {/* {record[moduleInfo.primarykey]}
     --{childModuleName}<br /> -- {fieldahead}
                 {formScheme.details.map((formField: any) => formField.orderno)} */}
-                
+
                 <OneTowManyTooltip moduleName={moduleInfo.modulename} fieldahead={fieldahead}
                     childModuleName={childModuleName} parentid={record[moduleInfo.primarykey]}
+                    count={value ? value : 0}
                 />
 
             </>}
