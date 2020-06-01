@@ -2,7 +2,10 @@ import React, { useState } from 'react';
 
 import { Modal, Form, Button, message, Space, Tooltip, Drawer } from 'antd';
 import moment from 'moment';
-import { EditOutlined, PlusOutlined, SaveOutlined, CopyOutlined, CloseOutlined, PaperClipOutlined } from '@ant-design/icons';
+import {
+    EditOutlined, PlusOutlined, SaveOutlined, CopyOutlined, CloseOutlined,
+    PaperClipOutlined
+} from '@ant-design/icons';
 import { ModuleModal, ModuleFieldType } from '../data';
 import { getOneColForm, getTwoColForm } from './formFactory';
 import { saveOrUpdateRecord } from '../service';
@@ -156,6 +159,8 @@ const ModuleForm = ({ moduleInfo, dispatch, currRecord, visible, onCancel, formT
     const [saveing, setSaving] = useState(false);
 
     const getFooter = () => {
+        const closeButton = <Button onClick={() => onInsertCancel()}><CloseOutlined />关闭</Button>;
+
         // 在新增保存后，如果有修改权限，则可对当前记录进行修改
         const editAfterInsertButton = <Button onClick={() => {
             setDisabled(false);
@@ -167,7 +172,7 @@ const ModuleForm = ({ moduleInfo, dispatch, currRecord, visible, onCancel, formT
                     formType: 'edit',
                 }
             })
-        }}>修改</Button>;
+        }}><EditOutlined />修改</Button>;
         const startApproveAfterInsertButton = <Button>启动流程</Button>;
         const insertButton = <Button type="primary"
             onClick={() => {
@@ -184,7 +189,7 @@ const ModuleForm = ({ moduleInfo, dispatch, currRecord, visible, onCancel, formT
                     }
                 })
             }}><PlusOutlined />继续新增</Button>;
-        const copyInsertButton = <Button type="primary"
+        const copyInsertButton = <Button type="default"
             onClick={() => {
                 setDisabled(false);
                 setAfterInsertState(false)
@@ -200,14 +205,15 @@ const ModuleForm = ({ moduleInfo, dispatch, currRecord, visible, onCancel, formT
                         {editAfterInsertButton}
                         {startApproveAfterInsertButton}
                     </span>
+                    {closeButton}
                     {copyInsertButton}
                     {insertButton}
                 </>
             } else {
-                return <>{saveInsertButton}</>
+                return <>{closeButton}{saveInsertButton}</>
             }
         } else
-            return <>{saveEditButton}</>
+            return <>{closeButton}{saveEditButton}</>
     }
 
 
@@ -228,6 +234,7 @@ const ModuleForm = ({ moduleInfo, dispatch, currRecord, visible, onCancel, formT
         form.validateFields().then(values => {
             console.log(values);
             //setFieldsValidate({});
+            setFieldsValidate({});
             setSaving(true);
             saveOrUpdateRecord({
                 moduleName,

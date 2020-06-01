@@ -7,7 +7,7 @@ import {
   EditOutlined, QuestionCircleOutlined, DeleteOutlined
 } from '@ant-design/icons';
 import { ModuleModal, ModuleFieldType, ColumnFilterInfoType, ModuleState, TextValue, } from '../data';
-import styles from './columnFactory1.less';
+import styles from './columnFactory.less';
 import { getSortOrder } from './sortUtils';
 import { getFieldDefine } from './fieldsFactory';
 import {

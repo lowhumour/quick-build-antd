@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Empty } from 'antd';
+import { Table, Tooltip } from 'antd';
+import { BarsOutlined } from '@ant-design/icons';
 import { fetchChildModuleData } from '../service';
 import { getModuleInfo, getFormSchemeFormType } from '../modules';
 import { ModuleModal, ModuleFieldType } from '../data';
 import { getFieldDefine } from '../grid/fieldsFactory';
-
+import styles from '../grid/columnFactory.less';
 /**
  *  post formdata
  *  /api/platform/dataobject/fetchchilddata.do
@@ -20,16 +21,18 @@ import { getFieldDefine } from '../grid/fieldsFactory';
  * 
  */
 
+const RECNO = '__recno__';
+
 const OneTowManyTooltip = ({ moduleName, parentid, childModuleName, fieldahead, count }:
     {
-        moduleName: string, parentid: string, childModuleName: string, fieldahead: string , count : number
+        moduleName: string, parentid: string, childModuleName: string, fieldahead: string, count: number
     }): any => {
     const array = []
-    for (let i=0;i<count ; i++)
-        array.push({});
+    for (let i = 0; i < Math.min(count, 20); i++)
+        array.push({ __recno__: i + 1 });
     const [data, setData] = useState(array);
     console.log(data);
-    const [loading , setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
     useEffect(() => {
         fetchChildModuleData({
             objectid: moduleName,
@@ -41,6 +44,10 @@ const OneTowManyTooltip = ({ moduleName, parentid, childModuleName, fieldahead, 
             start: 0,
         }).then((response: any) => {
             setLoading(false);
+            let __recno__ = 1;
+            response.msg.forEach((record: any) => {
+                record[RECNO] = __recno__++;
+            })
             setData(response.msg || []);
         })
     }, [])
@@ -48,18 +55,31 @@ const OneTowManyTooltip = ({ moduleName, parentid, childModuleName, fieldahead, 
     const cModuleInfo: ModuleModal = getModuleInfo(childModuleName);
     const scheme = getFormSchemeFormType(childModuleName, 'onetomanytooltip');
 
-    const columns = scheme.details.map((formField: any) => {
+    let columns: any[] = scheme.details.map((formField: any) => {
         const fieldDefine: ModuleFieldType = getFieldDefine(formField.fieldid, cModuleInfo);
         return {
-            title: fieldDefine.fieldtitle,
-            dataIndex: fieldDefine.fieldname,
+            title: <span style={{ wordBreak: 'keep-all' }}>{fieldDefine.fieldtitle}</span>,
+            dataIndex: fieldDefine.isManyToOne || fieldDefine.isOneToOne ?
+                fieldDefine.manyToOneInfo.nameField :
+                fieldDefine.fieldname,
             key: fieldDefine.fieldname,
+            render: (value: any, record: Object, recno_: number) => {
+                return <span style={{ wordBreak: 'keep-all' }}>{value}</span>
+            }
         }
     })
+    columns = [{
+        title: <Tooltip title="记录顺序号"><BarsOutlined /></Tooltip>,
+        dataIndex: RECNO,
+        key: RECNO,
+        className: styles.numberalignright,
+    }].concat(columns);
 
-    return !data.length ?
-        <Empty image={Empty.PRESENTED_IMAGE_SIMPLE} ></Empty> :
-        <Table loading={loading} dataSource={data} columns={columns} size="small" pagination={false} />;
+    return <> <Table loading={loading} dataSource={data} columns={columns} size="small" pagination={false} />
+        {
+            count > 20 ? <div style={{padding : '5px'}}>等共 {count} 条记录</div> : null
+        }</>
+
 
 
     return <table cellPadding="1" style={{ border: "1" }} className="ant-table.ant-table-bordered">
