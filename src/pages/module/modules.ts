@@ -49,6 +49,7 @@ export const generateModuleInfo = (module: any): ModuleModal => {
         viewschemes: obj.viewSchemes,
         userdefinedsorts: [],
         navigateSchemes: obj.navigateSchemes || [],
+        filterSchemes: obj.filterSchemes || {},
         moduleLimit: {
             hasenable: obj.hasenable,
             hasbrowse: obj.hasbrowse,
@@ -149,6 +150,14 @@ export const getAllGridSchemes = (gridschemes: any): any[] => {
     return result;
 }
 
+/**
+ * 返回一个自定义筛选方案，如果有多个，那么先选一个，一般只有一个
+ * @param moduleInfo 
+ */
+export const getFilterScheme = (moduleInfo: ModuleModal) : any => {
+    var s = moduleInfo.filterSchemes;
+    return s.system ? s.system[0] : s.owner ? s.owner[0] : s.othershare ? s.othershare[0] : null
+}
 
 
 

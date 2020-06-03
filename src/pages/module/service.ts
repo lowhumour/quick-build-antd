@@ -54,11 +54,14 @@ export async function fetchObjectDataWithState(moduleState: ModuleState) {
     const { columnfilter } = filters;
     if (columnfilter && columnfilter.length > 0)
       payload.filter = JSON.stringify(columnfilter);
-    const { navigate, viewscheme } = filters;
+    const { navigate, viewscheme, userfilter } = filters;
     if (navigate)
       payload.navigates = JSON.stringify(navigate);
     if (viewscheme.viewschemeid)
       payload.viewschemeid = viewscheme.viewschemeid;
+    if (userfilter && userfilter.length) {
+      payload.userfilter = JSON.stringify(userfilter.filter((f) => f.value));
+    }
     if (sorts.length) {
       payload.sort = JSON.stringify(sorts);
     }

@@ -4,6 +4,7 @@ import { ModuleModal, ModuleState } from '../data';
 import NavigateButton from './NavigateButton';
 import ViewSchemeButton from './ViewSchemeButton';
 import UserDefineFilterButton from './UserDefineFilterButton';
+import { getFilterScheme } from '../modules';
 
 const PageHeaderToolbar = (({ moduleState, moduleInfo, dispatch }:
     { moduleState: ModuleState, moduleInfo: ModuleModal, dispatch: any }) => {
@@ -12,13 +13,14 @@ const PageHeaderToolbar = (({ moduleState, moduleInfo, dispatch }:
 
         {
             Object.keys(moduleInfo.viewschemes).length ? <ViewSchemeButton
-               moduleState={moduleState} moduleInfo={moduleInfo} dispatch={dispatch} 
+                moduleState={moduleState} moduleInfo={moduleInfo} dispatch={dispatch}
             ></ViewSchemeButton> : null
         }
 
         {moduleInfo.navigateSchemes.length > 0 ?
             <NavigateButton moduleState={moduleState} dispatch={dispatch} /> : null}
-        <UserDefineFilterButton moduleState={moduleState} dispatch={dispatch}></UserDefineFilterButton>
+        {getFilterScheme(moduleInfo) ?
+            <UserDefineFilterButton moduleState={moduleState} dispatch={dispatch} /> : null}
         <span></span><span></span>
     </Space>
 

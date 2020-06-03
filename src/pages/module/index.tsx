@@ -9,7 +9,7 @@ import ModuleToolbar from './toolbar';
 import Navigate from './navigate';
 import PageHeaderToolbar from './PageHeaderToolbar';
 import UserDefineFilter from './UserDefineFilter';
-import { getModuleInfo } from './modules';
+import { getModuleInfo, getFilterScheme } from './modules';
 import ModuleForm from './form';
 
 interface ModuleProps {
@@ -65,8 +65,8 @@ const Module: React.FC<ModuleProps> = ({ gridType, pModuleName, manyToOneInfo, r
     const hasCardNavigate = moduleInfo.navigateSchemes.length && type === 'card';
     const navVisible = moduleState.currSetting.navigate.visible;
     const gridArea =
-        <>{moduleState.currSetting.userFilterRegionVisible ?
-            <UserDefineFilter moduleInfo={moduleInfo} dispatch={dispatch} /> : null}
+        <>{getFilterScheme(moduleInfo) && moduleState.currSetting.userFilterRegionVisible ?
+            <UserDefineFilter moduleState={moduleState} dispatch={dispatch} /> : null}
             <Card style={{ marginBottom: '20px' }}>
                 <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
                     dispatch={dispatch} ></ModuleToolbar>
@@ -148,9 +148,9 @@ const Module: React.FC<ModuleProps> = ({ gridType, pModuleName, manyToOneInfo, r
         <PageHeaderWrapper style1={{ backgroundColor: 'aliceblue' }}
             title={(gridType == 'selectfield' ? '选择 ' : '') + moduleInfo.objectname}
             extra={
-               <span> <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
-                dispatch={dispatch} ></ModuleToolbar>
-                {pageHeaderToolbar} </span>}
+                <span> <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
+                    dispatch={dispatch} ></ModuleToolbar>
+                    {pageHeaderToolbar} </span>}
             content={moduleDescription}
             extraContent={<span id={spanid}> </span>}>
             <GridContent>

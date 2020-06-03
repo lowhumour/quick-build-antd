@@ -176,6 +176,8 @@ const Model: ModuleModelType = {
                     }
                     filters.navigate = navigate;
                     break;
+                case 'userDefineFilter':
+                    filters.userfilter = payload.userfilter;
                 default:
                     break;
             }

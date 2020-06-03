@@ -162,7 +162,7 @@ export interface ModuleModal {
     viewschemes: any,
     userdefinedsorts: any[],
     navigateSchemes: any[],
-
+    filterSchemes: any,
 }
 
 export interface ModuleFilters {
@@ -171,7 +171,7 @@ export interface ModuleFilters {
     navigate: any[],            // 当前生效的导航
     searchfilter?: any,         // 查询框中的文字
     columnfilter?: ColumnFilter[],       // 当前生效的列筛选条件
-    userdefine?: any[],         // 用户自定义的筛选条件
+    userfilter?: any[],         // 用户自定义的筛选条件
 }
 
 export interface ModuleState {
