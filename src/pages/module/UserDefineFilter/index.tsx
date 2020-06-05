@@ -1,9 +1,9 @@
 import React from 'react';
 import { Card, Button, Space, Row, Col, Form, Input, Select } from 'antd';
-import { ModuleModal, ModuleState } from '../data';
+import { ModuleState, TextValue } from '../data';
 import { getFilterScheme, getModuleInfo } from '../modules';
 import { apply } from '@/utils/utils';
-import { getDateFilter } from './dateFilter';
+import { getDateFilter, canUseThisDateFilter, arrageDataFilterToParam } from './dateFilter';
 
 
 const layout = {
@@ -24,7 +24,7 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
                     return <Col span={8}>
                         {
                             filterField.isNumberField ? getNumberFilter(filterField, initValues) :
-                                filterField.isDateField ? getDateFilter(filterField, initValues , form) :
+                                filterField.isDateField ? getDateFilter(filterField, initValues, form) :
                                     getStringFilter(filterField, initValues)
                         }
                     </Col>
@@ -34,8 +34,6 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
     }
     const filterForm = getFilterForm(scheme);
     const onSearch = () => {
-        console.log(form.getFieldsValue());
-        console.log(initValues);
         const filter: object = JSON.parse(JSON.stringify(initValues));
         const formValues: object = form.getFieldsValue();
         const userfilter = [];
@@ -44,7 +42,6 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
             apply(filter[key], formValues[key]);
             userfilter.push(filter[key]);
         }
-
         dispatch({
             type: 'modules/filterChanged',
             payload: {
@@ -55,7 +52,7 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
         })
     }
     const onReset = () => {
-        form.setFieldsValue(initValues);// . resetFields();
+        form.setFieldsValue(initValues);
         const userfilter = [];
         const filter: object = JSON.parse(JSON.stringify(initValues));
         for (var key in filter) {
@@ -82,6 +79,8 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
                 if (values[filter.property]) {
                     values[filter.property].operator = filter.operator;
                     values[filter.property].value = filter.value;
+                    values[filter.property].operator1 = filter.operator1;
+                    values[filter.property].text = filter.text;
                 }
             })
         console.log(values);
@@ -108,35 +107,35 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
 
 const { Option } = Select;
 
-const numberFieldOperator = [{
-    id: 'eq',
+export const numberFieldOperator:TextValue[] = [{
+    value: 'eq',
     text: '='
 }, {
-    id: 'gt',
+    value: 'gt',
     text: '>'
 }, {
-    id: 'ge',
+    value: 'ge',
     text: '>='
 }, {
-    id: 'lt',
+    value: 'lt',
     text: '<'
 }, {
-    id: 'le',
+    value: 'le',
     text: '<='
 }, {
-    id: 'ne',
+    value: 'ne',
     text: '<>'
 }, {
-    id: 'in',
+    value: 'in',
     text: '列表'
 }, {
-    id: 'not in',
+    value: 'not in',
     text: '列表外'
 }, {
-    id: 'between',
+    value: 'between',
     text: '区间'
 }, {
-    id: 'not between',
+    value: 'not between',
     text: '区间外'
 }];
 const getNumberFilter = (filterField: any, initValues: object): any => {
@@ -155,7 +154,7 @@ const getNumberFilter = (filterField: any, initValues: object): any => {
             >
                 <Select style={{ width: 70 }}>
                     {numberFieldOperator.map((idtext: any) =>
-                        <Option value={idtext.id}>{idtext.text}</Option>)}
+                        <Option value={idtext.value}>{idtext.text}</Option>)}
                 </Select>
             </Form.Item>
             <Form.Item
@@ -168,45 +167,32 @@ const getNumberFilter = (filterField: any, initValues: object): any => {
     </Form.Item>
 }
 
-const getDateFilter1 = (filterField: any, initValues: object): any => {
-    initValues[filterField.fieldname] = {
-        property: filterField.fieldname,
-        operator: 'eq',
-        value: undefined,
-        type: 'date',
-        title: filterField.defaulttitle,
-    };
-    return <Form.Item label={filterField.defaulttitle} name={[filterField.fieldname, 'operator']}>
-        <Input />
-    </Form.Item>
-}
-
-const stringFieldOperator = [{
-    id: 'like',
+export const stringFieldOperator : TextValue[] = [{
+    value: 'like',
     text: '包含'
 }, {
-    id: 'in',
+    value: 'in',
     text: '列表'
 }, {
-    id: 'eq',
+    value: 'eq',
     text: '等于'
 }, {
-    id: 'startwith',
+    value: 'startwith',
     text: '开始于'
 }, {
-    id: 'not like',
+    value: 'not like',
     text: '不包含'
 }, {
-    id: 'not in',
+    value: 'not in',
     text: '列表外'
 }, {
-    id: 'ne',
+    value: 'ne',
     text: '不等于'
 }, {
-    id: 'not startwith',
+    value: 'not startwith',
     text: '不开始'
 }, {
-    id: 'regexp',
+    value: 'regexp',
     text: '正则'
 }];
 const getStringFilter = (filterField: any, initValues: object): any => {
@@ -226,7 +212,7 @@ const getStringFilter = (filterField: any, initValues: object): any => {
             >
                 <Select style={{ width: 70 }}>
                     {stringFieldOperator.map((idtext: any) =>
-                        <Option value={idtext.id}>{idtext.text}</Option>)}
+                        <Option value={idtext.value}>{idtext.text}</Option>)}
                 </Select>
             </Form.Item>
             <Form.Item
@@ -237,6 +223,38 @@ const getStringFilter = (filterField: any, initValues: object): any => {
             </Form.Item>
         </Input.Group>
     </Form.Item>
+}
+
+/**
+ * 把用户自定义条件，转化成ajax需要的参数
+ * @param userfilter 
+ */
+export const changeUserFilterToParam = (userfilter: any, addText: boolean = false): any[] => {
+    let result = [];
+    if (userfilter && userfilter.length) {
+        const filter = userfilter.filter((f: any) => {
+            if (f.searchfor === 'date')
+                return canUseThisDateFilter(f);
+            return f.value
+        });
+        result = filter.map((f: any) => {
+            return f.searchfor === 'date' ? arrageDataFilterToParam(f,addText) : f
+        });
+    }
+    return result;
+}
+
+export const getUserFilterCount = (userfilter: any): number => {
+    let result = 0;
+    if (userfilter && userfilter.length) {
+        const filter = userfilter.filter((f: any) => {
+            if (f.searchfor === 'date')
+                return canUseThisDateFilter(f);
+            return f.value
+        });
+        result = filter.length;
+    }
+    return result;
 }
 
 

@@ -1,5 +1,6 @@
 import { Key } from "react";
-import { ColumnFilter, ColumnFilterType, ModuleModal, ModuleState } from "../data";
+import { ColumnFilter, ColumnFilterType, ModuleState } from "../data";
+import { getUserFilterCount, stringFieldOperator, numberFieldOperator } from "../UserDefineFilter";
 
 /**
  * 所有模块的grid column 的筛选的信息
@@ -24,7 +25,8 @@ export const getColumnFilterInfo = (moduleid: string, dataIndex: string) => {
 export const getAllFilterCount = (moduleState: ModuleState): number => {
     return (moduleState.filters.viewscheme.viewschemeid ? 1 : 0) +
         (moduleState.filters.columnfilter ? moduleState.filters.columnfilter.length : 0) +
-        (moduleState.filters.navigate ? moduleState.filters.navigate.length : 0)
+        (moduleState.filters.navigate ? moduleState.filters.navigate.length : 0) +
+        getUserFilterCount(moduleState.filters.userfilter);
 }
 
 /**
@@ -39,8 +41,6 @@ export const getAllFilterCount = (moduleState: ModuleState): number => {
 export const getGridColumnFilters = (filters: Record<string, Key[] | null>,
     columnFilterInfo: ColumnFilterType): ColumnFilter[] => {
     const result: ColumnFilter[] = new Array();
-    console.log(filters);
-    console.log(columnFilterInfo);
     for (var key in filters) {
         let value = filters[key];
         if (value !== null && value !== undefined) {
@@ -178,12 +178,17 @@ const OptionSelectOption = [
 ]
 
 export const getOperateTitle = (operate: string): string => {
-    let result = NumberSelectOption.filter(item => item.value === operate);
+    let result: any = NumberSelectOption.filter(item => item.value === operate);
     if (result.length > 0)
         return result[0].text;
     result = OptionSelectOption.filter(item => item.value === operate);
     if (result.length > 0)
         return result[0].text;
+    result = stringFieldOperator.filter(item => item.value === operate);
+    if (result.length > 0)
+        return result[0].text;
+    result = numberFieldOperator.filter(item => item.value === operate);
+    if (result.length > 0)
+        return result[0].text;
     return operate;
-
 }

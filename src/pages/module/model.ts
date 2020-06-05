@@ -53,7 +53,7 @@ export interface ModuleModelType {
 
         gridSchemeChanged: Reducer<ModalState>;
         monetaryChanged: Reducer<ModalState>;
-        
+
     };
 }
 
@@ -94,8 +94,8 @@ const Model: ModuleModelType = {
                 moduleInfo,
                 dataSourceLoadCount: 1,
                 currentGridschemeid: getGridDefaultScheme(moduleInfo).gridschemeid,
-                monetary : getMonetary('tenthousand'),
-                monetaryPosition : 'behindnumber',
+                monetary: getMonetary('tenthousand'),
+                monetaryPosition: 'behindnumber',
                 dataSource: [],
                 selectedRowKeys: [],
                 selectedTextValue: [],
@@ -178,6 +178,15 @@ const Model: ModuleModelType = {
                     break;
                 case 'userDefineFilter':
                     filters.userfilter = payload.userfilter;
+                    break;
+                case 'clearUserFilter':
+                    filters.userfilter = filters.userfilter?.map((filter) => {
+                        const f = {...filter};
+                        delete f.value;
+                        delete f.text;
+                        return f;
+                    })
+                    break;
                 default:
                     break;
             }
@@ -490,10 +499,10 @@ const Model: ModuleModelType = {
         },
 
         monetaryChanged(state = {}, action) {
-            const { position , monetaryType , moduleName } = action.payload;
+            const { position, monetaryType, moduleName } = action.payload;
             const moduleState: ModuleState = state[moduleName] as ModuleState;
             const result = { ...state };
-            if (position)   
+            if (position)
                 result[moduleName] = { ...moduleState, monetaryPosition: position };
             if (monetaryType)
                 result[moduleName] = { ...moduleState, monetary: getMonetary(monetaryType) };

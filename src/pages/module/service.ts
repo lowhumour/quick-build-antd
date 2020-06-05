@@ -3,7 +3,7 @@ import { applyIf } from '@/utils/utils';
 import { ModuleState } from './data';
 import { getAttachmentData } from './attachment/utils';
 import { FetchObjectResponse } from './data';
-import { canUseThisDateFilter, arrageDataFilterToParam } from './UserDefineFilter/dateFilter';
+import { changeUserFilterToParam } from './UserDefineFilter';
 
 
 
@@ -61,14 +61,11 @@ export async function fetchObjectDataWithState(moduleState: ModuleState) {
     if (viewscheme.viewschemeid)
       payload.viewschemeid = viewscheme.viewschemeid;
     if (userfilter && userfilter.length) {
-      const filter = userfilter.filter((f) => {
-        if (f.searchfor === 'date')
-          return canUseThisDateFilter(f);
-        return f.value
-      });
-      payload.userfilter = JSON.stringify(filter.map((f: any) => {
-        return f.searchfor === 'date' ? arrageDataFilterToParam(f) : f
-      }));
+      payload.userfilter = changeUserFilterToParam(userfilter);
+      if (payload.userfilter.length)
+        payload.userfilter = JSON.stringify(payload.userfilter);
+      else
+        delete payload.userfilter;
     }
     if (sorts.length) {
       payload.sort = JSON.stringify(sorts);

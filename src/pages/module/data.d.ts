@@ -97,6 +97,17 @@ export interface ColumnFilter {
     dataIndex?: string,
 }
 
+export interface UserFilter {
+    property: Key,
+    value: any,
+    operator: string,
+    operator1?: string,
+    title?: string,
+    text?: string,
+    searchfor?: string,
+    type?: string,
+}
+
 export interface TextValue {
     text: string | undefined;
     value: string | undefined;
