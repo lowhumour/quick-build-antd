@@ -8,8 +8,9 @@ import styles from './toolbar.less';
 import ExportButton from './ExportButton';
 import BatchOperateButton from './BatchOperateButton';
 
-const ModuleToolbar = ({ moduleState, moduleInfo, dispatch, manyToOneInfo }:
-    { moduleState: ModuleState, moduleInfo: ModuleModal, dispatch: any, manyToOneInfo: any }) => {
+const ModuleToolbar = ({ moduleState, moduleInfo, dispatch, manyToOneInfo, clearUserDefineFunc }:
+    { moduleState: ModuleState, moduleInfo: ModuleModal, dispatch: any, manyToOneInfo: any , 
+        clearUserDefineFunc:any }) => {
     console.log('toolbar renderer.......')
     return <span>
         <Space size="small">
@@ -24,9 +25,9 @@ const ModuleToolbar = ({ moduleState, moduleInfo, dispatch, manyToOneInfo }:
                 })
             }}><PlusOutlined /> 新建 </Button>
             <Link to="/module/FDictionarygroup/new">new</Link>
-            <ExportButton moduleInfo={moduleInfo}></ExportButton>
+            <ExportButton moduleInfo={moduleInfo} moduleState={moduleState}></ExportButton>
             <Tooltip title="设置"><SettingOutlined className={styles.iconToolbar}></SettingOutlined></Tooltip>
-            <FilterInfoButton moduleState={moduleState} dispatch={dispatch} ></FilterInfoButton>
+            <FilterInfoButton moduleState={moduleState} dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc} ></FilterInfoButton>
             {moduleState.selectedRowKeys.length ?
                 <BatchOperateButton moduleState={moduleState} dispatch={dispatch} /> : null}
             {/* <SelectionButton moduleState={moduleState} /> */}

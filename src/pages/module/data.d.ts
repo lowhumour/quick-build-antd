@@ -2,7 +2,7 @@
  * 自定义模块的参数定义
  */
 
-import { MonetaryType } from "./Grid/Monetary";
+import { MonetaryType } from "./grid/monetary";
 
 
 // 模块字段类型

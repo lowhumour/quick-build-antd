@@ -1,9 +1,10 @@
 import request, { syncRequest } from '@/utils/request';
-import { applyIf } from '@/utils/utils';
+import { applyIf, apply } from '@/utils/utils';
 import { ModuleState } from './data';
 import { getAttachmentData } from './attachment/utils';
 import { FetchObjectResponse } from './data';
 import { changeUserFilterToParam } from './UserDefineFilter';
+import { getAllFilterAjaxParam } from './grid/filterUtils';
 
 
 
@@ -46,27 +47,14 @@ export async function queryUserLoginLog(data: {
 
 export async function fetchObjectDataWithState(moduleState: ModuleState) {
   return new Promise(function (resolve, reject) {
-    const { moduleName, gridParams, filters, sorts } = moduleState;
+    const { moduleName, gridParams, sorts } = moduleState;
     const payload: any = { moduleName };
     payload.page = gridParams.curpage;
     payload.limit = gridParams.limit;
     payload.start = gridParams.start;
-    // 加入columnfilter
-    const { columnfilter } = filters;
-    if (columnfilter && columnfilter.length > 0)
-      payload.filter = JSON.stringify(columnfilter);
-    const { navigate, viewscheme, userfilter } = filters;
-    if (navigate)
-      payload.navigates = JSON.stringify(navigate);
-    if (viewscheme.viewschemeid)
-      payload.viewschemeid = viewscheme.viewschemeid;
-    if (userfilter && userfilter.length) {
-      payload.userfilter = changeUserFilterToParam(userfilter);
-      if (payload.userfilter.length)
-        payload.userfilter = JSON.stringify(payload.userfilter);
-      else
-        delete payload.userfilter;
-    }
+
+    apply(payload , getAllFilterAjaxParam(moduleState));
+
     if (sorts.length) {
       payload.sort = JSON.stringify(sorts);
     }

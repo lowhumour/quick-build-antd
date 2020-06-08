@@ -1,6 +1,6 @@
 import { Key } from "react";
 import { ColumnFilter, ColumnFilterType, ModuleState } from "../data";
-import { getUserFilterCount, stringFieldOperator, numberFieldOperator } from "../UserDefineFilter";
+import { getUserFilterCount, stringFieldOperator, numberFieldOperator, changeUserFilterToParam } from "../UserDefineFilter";
 
 /**
  * 所有模块的grid column 的筛选的信息
@@ -27,6 +27,53 @@ export const getAllFilterCount = (moduleState: ModuleState): number => {
         (moduleState.filters.columnfilter ? moduleState.filters.columnfilter.length : 0) +
         (moduleState.filters.navigate ? moduleState.filters.navigate.length : 0) +
         getUserFilterCount(moduleState.filters.userfilter);
+}
+
+/**
+ * 获取所有的条件，用于fetch data时传送到后台的筛选参数
+ */
+export const getAllFilterAjaxParam = (moduleState: ModuleState) => {
+    const payload: any = {};
+    const { filters } = moduleState;
+    const { columnfilter, navigate, viewscheme, userfilter } = filters;
+    if (columnfilter && columnfilter.length > 0)
+        payload.filter = JSON.stringify(columnfilter);
+    if (navigate)
+        payload.navigates = JSON.stringify(navigate);
+    if (viewscheme.viewschemeid)
+        payload.viewschemeid = viewscheme.viewschemeid;
+    if (userfilter && userfilter.length) {
+        payload.userfilter = changeUserFilterToParam(userfilter);
+        if (payload.userfilter.length)
+            payload.userfilter = JSON.stringify(payload.userfilter);
+        else
+            delete payload.userfilter;
+    }
+    return payload;
+}
+
+/**
+ * 获取所有的条件文本描述
+ * property
+ * operator
+ * value
+ */
+export const getAllFilterAjaxText = (moduleState: ModuleState) :any[]=> {
+    const {moduleName} = moduleState;
+    const result: any[] = [];
+    
+    result.push( ... getGridColumnFiltersDescription(moduleState.filters.columnfilter || [],
+        getColumnFiltersInfo(moduleName), ','))
+    result.push( ...moduleState.filters.navigate);
+
+    if (moduleState.filters.viewscheme.viewschemeid )
+        result.push({
+            property : '视图方案：'+ moduleState.filters.viewscheme.title,
+            operator : null,
+            value :  null,
+        })
+
+    return result;
 }
 
 /**

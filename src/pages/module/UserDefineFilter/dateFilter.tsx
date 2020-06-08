@@ -38,9 +38,9 @@ const dataSectionOperator = [{
     value: 'quarter',
     label: '季度'
 }, {
-    value: 'week',
-    label: '周　'
-}, {
+//     value: 'week',
+//     label: '周　'
+// }, {
     value: 'day',
     label: '日期'
 }]
@@ -207,10 +207,10 @@ export const getDateFilter = (filterField: any, initValues: object, form: any): 
         setSection(form.getFieldValue([filterField.fieldname, 'operator']) || 'all');
 
     return <Form.Item label={filterField.defaulttitle} >
-        <button onClick={() => {
+        {/* <button onClick={() => {
             console.log(section, type);
             console.log(form.getFieldValue(filterField.fieldname))
-        }} >aaa</button>
+        }} >aaa</button> */}
         <Input.Group compact style={{ display: 'flex' }}>
             <Form.Item
                 name={[filterField.fieldname, 'operator']}

@@ -1,7 +1,6 @@
 import React from 'react';
 
 import { TextValue } from "../data";
-import { stringify } from "qs";
 
 export interface MonetaryType {
     type: string;
@@ -45,7 +44,6 @@ const monetarys = [
         monerary: createAMonetary('hundredmillion', '亿', 10000 * 10000, '亿'),
     }
 ];
-
 
 export const getMonetarysValueText = (): TextValue[] => {
     return monetarys.map((monerary): TextValue => {

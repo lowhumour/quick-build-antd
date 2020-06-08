@@ -64,12 +64,13 @@ const Module: React.FC<ModuleProps> = ({ gridType, pModuleName, manyToOneInfo, r
     const { type, position } = moduleState.currSetting.navigate;
     const hasCardNavigate = moduleInfo.navigateSchemes.length && type === 'card';
     const navVisible = moduleState.currSetting.navigate.visible;
+    const clearUserDefineFunc = {func : null};
     const gridArea =
-        <>{getFilterScheme(moduleInfo) && moduleState.currSetting.userFilterRegionVisible ?
-            <UserDefineFilter moduleState={moduleState} dispatch={dispatch} /> : null}
+        <>{getFilterScheme(moduleInfo) && moduleState.currSetting.userFilterRegionVisible ? 
+            <UserDefineFilter moduleState={moduleState} dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc} /> : null}
             <Card style={{ marginBottom: '20px' }}>
                 <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
-                    dispatch={dispatch} ></ModuleToolbar>
+                    dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc}></ModuleToolbar>
                 <ModuleGrid moduleInfo={moduleInfo} moduleState={moduleState} gridType={gridType}
                     dispatch={dispatch} fetchLoading={fetchLoading}></ModuleGrid>
             </Card></>

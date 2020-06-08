@@ -9,7 +9,7 @@ import { getGridColumnFilters, getColumnFiltersInfo } from './grid/filterUtils';
 import { ModuleState, TextValue, ModuleModal, ModuleFilters, FetchObjectResponse } from './data';
 import { setModuleInfo, generateModuleInfo, hasModuleInfo, getModuleInfo, getGridDefaultScheme } from './modules';
 import { apply } from '@/utils/utils';
-import { getMonetary } from './Grid/Monetary';
+import { getMonetary } from './grid/monetary';
 
 export type Effect = (
     action: AnyAction,

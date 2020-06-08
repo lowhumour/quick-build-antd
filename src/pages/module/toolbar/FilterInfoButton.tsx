@@ -13,8 +13,8 @@ import { changeUserFilterToParam } from '../UserDefineFilter';
 
 const { Item } = Descriptions;
 
-const FilterInfoButton = ({ moduleState: moduleState, dispatch }:
-    { moduleState: ModuleState, dispatch: any }) => {
+const FilterInfoButton = ({ moduleState: moduleState, dispatch, clearUserDefineFunc }:
+    { moduleState: ModuleState, dispatch: any, clearUserDefineFunc: any }) => {
     const { moduleName } = moduleState;
     const allColumnFilter = getGridColumnFiltersDescription(moduleState.filters.columnfilter || [],
         getColumnFiltersInfo(moduleName), '<br/>');
@@ -124,20 +124,11 @@ const FilterInfoButton = ({ moduleState: moduleState, dispatch }:
     const userFilterMenu = <List style={{ border: '1px solid #f0f0f0', }} size="small">
         <List.Item key="info"
             actions={[<a onClick={() => {
-                dispatch({
-                    type: 'modules/filterChanged',
-                    payload: {
-                        type: 'clearUserFilter',
-                        moduleName,
-                    }
-                })
+                clearUserDefineFunc.func();
             }} key="removeAll">全部取消</a>]}
         >
             <b>自定义条件列表</b>
         </List.Item>
-
-
-
         {userFilter.map((item: UserFilter, index: number) => {
             return <List.Item >
                 <Descriptions bordered={false} column={5} size="small" style={{ width: 420 }}>
@@ -150,16 +141,7 @@ const FilterInfoButton = ({ moduleState: moduleState, dispatch }:
                         <span dangerouslySetInnerHTML={{ __html: item.value }}></span>
                     </Item>
                     <Item style={{ width: 40, paddingBottom: 0 }} key="action">
-                        <a onClick={() => {
-                            dispatch({
-                                type: 'modules/filterChanged',
-                                payload: {
-                                    type: 'clearColumnFilter',
-                                    moduleName,
-                                    dataIndex: item.property,
-                                }
-                            })
-                        }} key="remove">取消</a></Item>
+                    </Item>
                 </Descriptions>
             </List.Item>
         })}

@@ -11,7 +11,8 @@ const layout = {
     wrapperCol: { span: 18 },
 };
 
-const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState, dispatch: any }) => {
+const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
+    { moduleState: ModuleState, dispatch: any, clearUserDefineFunc: any }) => {
     const initValues = {};
     const { moduleName } = moduleState;
     const moduleInfo = getModuleInfo(moduleName);
@@ -67,7 +68,7 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
             }
         })
     }
-
+    clearUserDefineFunc.func = onReset;     // 将清除函数返回到上一级，供清除用户自定义条件时使用
     const getStateInitValues = (): object => {
         const { filters } = moduleState;
         const { userfilter } = filters;
@@ -107,7 +108,7 @@ const UserDefineFilter = ({ moduleState, dispatch }: { moduleState: ModuleState,
 
 const { Option } = Select;
 
-export const numberFieldOperator:TextValue[] = [{
+export const numberFieldOperator: TextValue[] = [{
     value: 'eq',
     text: '='
 }, {
@@ -167,7 +168,7 @@ const getNumberFilter = (filterField: any, initValues: object): any => {
     </Form.Item>
 }
 
-export const stringFieldOperator : TextValue[] = [{
+export const stringFieldOperator: TextValue[] = [{
     value: 'like',
     text: '包含'
 }, {
@@ -238,7 +239,7 @@ export const changeUserFilterToParam = (userfilter: any, addText: boolean = fals
             return f.value
         });
         result = filter.map((f: any) => {
-            return f.searchfor === 'date' ? arrageDataFilterToParam(f,addText) : f
+            return f.searchfor === 'date' ? arrageDataFilterToParam(f, addText) : f
         });
     }
     return result;

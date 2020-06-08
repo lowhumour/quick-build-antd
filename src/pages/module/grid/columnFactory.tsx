@@ -25,7 +25,7 @@ import { getDictionaryData } from '../dictionary/dictionarys';
 import { getModuleInfo, getModuleComboDataSource } from '../modules';
 import { deleteModuleRecord } from '../service';
 import { attachemntRenderer } from '../attachment/utils';
-import { getMonetarysValueText } from './Monetary';
+import { getMonetarysValueText } from './monetary';
 
 // import { getSortOrder } from './sortUtils';
 // import { getColumnFilterValue, getBooleanFilter } from './filterUtils';

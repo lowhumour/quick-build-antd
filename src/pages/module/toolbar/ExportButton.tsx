@@ -3,9 +3,11 @@ import React from 'react';
 import { Dropdown, Button, Menu, Checkbox } from 'antd';
 import { FileExcelOutlined, FilePdfOutlined } from '@ant-design/icons';
 import { BsDownload} from 'react-icons/bs';
-import { ModuleModal } from '../data';
+import { ModuleModal, ModuleState } from '../data';
 import { downloadGridExcel } from '../service';
-import { getCurrentExportGridColumnDefine } from '../Grid/columnFactory';
+import { getCurrentExportGridColumnDefine } from '../grid/columnFactory';
+import { apply } from '@/utils/utils';
+import { getAllFilterAjaxParam, getAllFilterAjaxText } from '../grid/filterUtils';
 
 const { SubMenu } = Menu;
 
@@ -22,12 +24,12 @@ const getGridExcelExportItems = (moduleInfo: ModuleModal) => {
 }
 
 
-const ExportButton = ({ moduleInfo }: { moduleInfo: ModuleModal }) => {
+const ExportButton = ({ moduleInfo , moduleState }: { moduleInfo: ModuleModal , moduleState : ModuleState }) => {
 
     const handleMenuClick = (e: any) => {
         console.log(e)
         const { key }: { key: string } = e;
-        const { modulename: moduleName } = moduleInfo
+        const { modulename: moduleName } = moduleInfo;
         const params: any = {
             moduleName,
             columns: JSON.stringify(getCurrentExportGridColumnDefine(moduleName)),
@@ -47,6 +49,9 @@ const ExportButton = ({ moduleInfo }: { moduleInfo: ModuleModal }) => {
             autofitwidth: true,
             scale: 100,
         }
+        apply(params , getAllFilterAjaxParam(moduleState));
+        params.conditions = JSON.stringify(getAllFilterAjaxText(moduleState));
+
         if (key.startsWith(GRIDEXCELEXPORT)) {
             const parts = key.split('||');
             params.formschemeid = parts[1];
