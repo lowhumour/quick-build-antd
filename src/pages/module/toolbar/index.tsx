@@ -4,7 +4,6 @@ import { SettingOutlined, PlusOutlined } from '@ant-design/icons';
 import { Link } from 'umi';
 import { ModuleModal, ModuleState, TextValue } from "../data";
 import FilterInfoButton from './FilterInfoButton';
-import styles from './toolbar.less';
 import ExportButton from './ExportButton';
 import BatchOperateButton from './BatchOperateButton';
 
@@ -24,9 +23,9 @@ const ModuleToolbar = ({ moduleState, moduleInfo, dispatch, manyToOneInfo, clear
                     }
                 })
             }}><PlusOutlined /> 新建 </Button>
-            <Link to="/module/FDictionarygroup/new">new</Link>
+            {/* <Link to="/module/FDictionarygroup/new">new</Link> */}
             <ExportButton moduleInfo={moduleInfo} moduleState={moduleState}></ExportButton>
-            <Tooltip title="设置"><SettingOutlined className={styles.iconToolbar}></SettingOutlined></Tooltip>
+            <Tooltip title="设置"><SettingOutlined></SettingOutlined></Tooltip>
             <FilterInfoButton moduleState={moduleState} dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc} ></FilterInfoButton>
             {moduleState.selectedRowKeys.length ?
                 <BatchOperateButton moduleState={moduleState} dispatch={dispatch} /> : null}

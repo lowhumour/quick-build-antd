@@ -253,8 +253,6 @@ export const getDateFilter = (filterField: any, initValues: object, form: any): 
 
 
 export const canUseThisDateFilter = (f: any): boolean => {
-    console.log('aaaa')
-    console.log(f)
     if (f.operator === 'all')
         return false;
     if (f.operator1 === 'section' && f.value[0] == null && f.value[1] == null)

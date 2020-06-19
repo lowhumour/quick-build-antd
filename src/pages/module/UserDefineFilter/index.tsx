@@ -4,7 +4,8 @@ import { ModuleState, TextValue } from '../data';
 import { getFilterScheme, getModuleInfo } from '../modules';
 import { apply } from '@/utils/utils';
 import { getDateFilter, canUseThisDateFilter, arrageDataFilterToParam } from './dateFilter';
-
+import TagSelect from './TagSelect';
+import { getDictionaryData } from '../dictionary/dictionarys';
 
 const layout = {
     labelCol: { span: 6 },
@@ -13,7 +14,12 @@ const layout = {
 
 const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
     { moduleState: ModuleState, dispatch: any, clearUserDefineFunc: any }) => {
-    const initValues = {};
+    const initValues = {
+        category: {
+            value: undefined,
+            operator: 'in'
+        }
+    };
     const { moduleName } = moduleState;
     const moduleInfo = getModuleInfo(moduleName);
     const scheme = getFilterScheme(moduleInfo);
@@ -22,8 +28,8 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
         return <Row gutter={6}>
             {
                 scheme.details[0].details.map((filterField: any) => {
-                    return <Col span={8}>
-                        {
+                    return <Col span={8 * (filterField.colspan ? filterField.colspan : 1)}>
+                        {filterField.fDictionaryid ? getDictionaryFilter(filterField, initValues) :
                             filterField.isNumberField ? getNumberFilter(filterField, initValues) :
                                 filterField.isDateField ? getDateFilter(filterField, initValues, form) :
                                     getStringFilter(filterField, initValues)
@@ -37,6 +43,7 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
     const onSearch = () => {
         const filter: object = JSON.parse(JSON.stringify(initValues));
         const formValues: object = form.getFieldsValue();
+        console.log(formValues);
         const userfilter = [];
         for (var key in formValues) {
             if (!filter[key]) filter[key] = {};
@@ -107,6 +114,45 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
 
 
 const { Option } = Select;
+
+const getDictionaryFilter = (filterField: any, initValues: object): any => {
+    initValues[filterField.fieldname] = {
+        property: filterField.fieldname,
+        operator: 'in',
+        value: undefined,
+        title: filterField.defaulttitle,
+    };
+    const dictData: TextValue[] = getDictionaryData(filterField.fDictionaryid);
+
+    return <Form.Item label={filterField.defaulttitle} >
+        <Input.Group compact style={{ display: 'flex' }}>
+            <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                <Select mode="multiple" style={{ flex: 1 }} allowClear>
+                    {dictData.map((rec: TextValue) => <Option value={rec.value || ''}>{rec.text}</Option>)}
+                </Select>
+            </Form.Item>
+            <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                <Input type="hidden" />
+            </Form.Item>
+        </Input.Group>
+    </Form.Item>
+
+
+
+    return <Form.Item label={filterField.defaulttitle} >
+        <Input.Group compact style={{ display: 'flex' }}>
+            <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                <TagSelect expandable={false} expand={true} >
+                    {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
+                </TagSelect>
+            </Form.Item>
+            <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                <Input type="hidden" />
+            </Form.Item>
+        </Input.Group>
+    </Form.Item>
+
+}
 
 export const numberFieldOperator: TextValue[] = [{
     value: 'eq',
@@ -236,7 +282,7 @@ export const changeUserFilterToParam = (userfilter: any, addText: boolean = fals
         const filter = userfilter.filter((f: any) => {
             if (f.searchfor === 'date')
                 return canUseThisDateFilter(f);
-            return f.value
+            return isEmptyOrEmptyArray(f.value)
         });
         result = filter.map((f: any) => {
             return f.searchfor === 'date' ? arrageDataFilterToParam(f, addText) : f
@@ -251,12 +297,22 @@ export const getUserFilterCount = (userfilter: any): number => {
         const filter = userfilter.filter((f: any) => {
             if (f.searchfor === 'date')
                 return canUseThisDateFilter(f);
-            return f.value
+            return isEmptyOrEmptyArray(f.value)
         });
         result = filter.length;
     }
     return result;
 }
 
+/**
+ * 判断一个值是否为空，如果是数组，判断数组是否为空
+ * @param value 
+ */
+const isEmptyOrEmptyArray = (value: any) => {
+    if (Array.isArray(value))
+        return value.length;
+    else
+        return value;
+}
 
 export default UserDefineFilter;

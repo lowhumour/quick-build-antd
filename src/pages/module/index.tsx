@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
 import { PageHeaderWrapper, GridContent } from '@ant-design/pro-layout';
-import { Spin, Card, Skeleton, Row, Col, Drawer } from 'antd';
+import { Spin, Card, Skeleton, Row, Col, Drawer, Space } from 'antd';
 import { Dispatch } from 'redux';
 import { connect } from 'dva';
 import ModuleGrid from './grid';
@@ -69,8 +69,8 @@ const Module: React.FC<ModuleProps> = ({ gridType, pModuleName, manyToOneInfo, r
         <>{getFilterScheme(moduleInfo) && moduleState.currSetting.userFilterRegionVisible ? 
             <UserDefineFilter moduleState={moduleState} dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc} /> : null}
             <Card style={{ marginBottom: '20px' }}>
-                <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
-                    dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc}></ModuleToolbar>
+                {/* <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
+                    dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc}></ModuleToolbar> */}
                 <ModuleGrid moduleInfo={moduleInfo} moduleState={moduleState} gridType={gridType}
                     dispatch={dispatch} fetchLoading={fetchLoading}></ModuleGrid>
             </Card></>
@@ -149,9 +149,9 @@ const Module: React.FC<ModuleProps> = ({ gridType, pModuleName, manyToOneInfo, r
         <PageHeaderWrapper style1={{ backgroundColor: 'aliceblue' }}
             title={(gridType == 'selectfield' ? '选择 ' : '') + moduleInfo.objectname}
             extra={
-                <span> <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
-                    dispatch={dispatch} ></ModuleToolbar>
-                    {pageHeaderToolbar} </span>}
+                <Space size="large"> <ModuleToolbar moduleInfo={moduleInfo} moduleState={moduleState} manyToOneInfo={manyToOneInfo}
+                    dispatch={dispatch} clearUserDefineFunc={clearUserDefineFunc} ></ModuleToolbar>
+                    {pageHeaderToolbar} </Space>}
             content={moduleDescription}
             extraContent={<span id={spanid}> </span>}>
             <GridContent>

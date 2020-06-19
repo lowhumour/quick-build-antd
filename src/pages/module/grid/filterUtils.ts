@@ -58,19 +58,29 @@ export const getAllFilterAjaxParam = (moduleState: ModuleState) => {
  * operator
  * value
  */
-export const getAllFilterAjaxText = (moduleState: ModuleState) :any[]=> {
-    const {moduleName} = moduleState;
+export const getAllFilterAjaxText = (moduleState: ModuleState): any[] => {
+    const { moduleName } = moduleState;
     const result: any[] = [];
-    
-    result.push( ... getGridColumnFiltersDescription(moduleState.filters.columnfilter || [],
-        getColumnFiltersInfo(moduleName), ','))
-    result.push( ...moduleState.filters.navigate);
 
-    if (moduleState.filters.viewscheme.viewschemeid )
+    result.push(...changeUserFilterToParam(moduleState.filters.userfilter, true).
+        map((f: any) => {
+            const result = { ...f };
+            result.property = result.title;
+            result.operator = getOperateTitle(result.operator); 
+            delete result.title;
+            return result;
+        }))
+
+    result.push(...getGridColumnFiltersDescription(moduleState.filters.columnfilter || [],
+        getColumnFiltersInfo(moduleName), ','))
+
+    result.push(...moduleState.filters.navigate);
+
+    if (moduleState.filters.viewscheme.viewschemeid)
         result.push({
-            property : '视图方案：'+ moduleState.filters.viewscheme.title,
-            operator : null,
-            value :  null,
+            property: '视图方案：' + moduleState.filters.viewscheme.title,
+            operator: null,
+            value: null,
         })
 
     return result;

@@ -2,7 +2,6 @@ import React from 'react';
 import { List, Badge, Tooltip, Descriptions, Popover, Space } from 'antd';
 import { FilterOutlined } from '@ant-design/icons';
 import { ColumnFilter, ModuleState, UserFilter } from "../data";
-import styles from './toolbar.less';
 import {
     getGridColumnFiltersDescription,
     getColumnFiltersInfo,
@@ -165,12 +164,12 @@ const FilterInfoButton = ({ moduleState: moduleState, dispatch, clearUserDefineF
             <Popover content={getAllMenu()} trigger={['click']} placement="bottom">
                 <Badge count={allFilter} dot={false} offset={[-10, 0]}
                     style={{ backgroundColor: '#108ee9' }}>
-                    <FilterOutlined className={styles.iconToolbar} style={{ paddingRight: 20 }}></FilterOutlined>
+                    <FilterOutlined style={{ paddingRight: 20 }}></FilterOutlined>
                 </Badge>
             </Popover>
         </Tooltip> :
         <Tooltip title={"无筛选条件"}>
-            <FilterOutlined className={styles.iconToolbar}></FilterOutlined>
+            <FilterOutlined ></FilterOutlined>
         </Tooltip>
 }
 export default FilterInfoButton;
