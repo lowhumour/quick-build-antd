@@ -1,6 +1,6 @@
 import { ModuleModal, TextValue } from "./data";
 import { querySyncModuleInfo, fetchObjectComboData } from "./service";
-import { applyOtherSetting } from "@/utils/utils";
+import { applyAllOtherSetting } from "@/utils/utils";
 
 const modules: Record<string, ModuleModal> = {};
 const moduleComboDataSource: Record<string, TextValue[]> = {}
@@ -14,8 +14,7 @@ export const getModuleComboDataSource = (moduleName: string): TextValue[] => {
 
 export const getModuleInfo = (moduleName: string): ModuleModal => {
     if (!modules[moduleName]) {
-        modules[moduleName] = generateModuleInfo(
-            querySyncModuleInfo(moduleName));
+        setModuleInfo(moduleName, generateModuleInfo(querySyncModuleInfo(moduleName)));
     }
     return modules[moduleName];
 }
@@ -25,14 +24,15 @@ export const hasModuleInfo = (moduleName: string): boolean =>
 
 export const setModuleInfo = (moduleName: string, moduleModal: ModuleModal) => {
     modules[moduleName] = moduleModal;
+    applyAllOtherSetting(modules[moduleName]);
 }
 
 export const generateModuleInfo = (module: any): ModuleModal => {
     const obj = module.fDataobject;
     const basefunction = obj.baseFunctions;
-    getAllGridSchemes(obj.gridSchemes).forEach((scheme: any) => {
-        applyOtherSetting(scheme, scheme.othersetting)
-    })
+    // getAllGridSchemes(obj.gridSchemes).forEach((scheme: any) => {
+    //     applyOtherSetting(scheme, scheme.othersetting)
+    // })
     const moduleInfo: ModuleModal = {
         moduleid: obj.objectname,
         modulename: obj.objectname,
@@ -154,7 +154,7 @@ export const getAllGridSchemes = (gridschemes: any): any[] => {
  * 返回一个自定义筛选方案，如果有多个，那么先选一个，一般只有一个
  * @param moduleInfo 
  */
-export const getFilterScheme = (moduleInfo: ModuleModal) : any => {
+export const getFilterScheme = (moduleInfo: ModuleModal): any => {
     var s = moduleInfo.filterSchemes;
     return s.system ? s.system[0] : s.owner ? s.owner[0] : s.othershare ? s.othershare[0] : null
 }

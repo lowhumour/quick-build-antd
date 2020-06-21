@@ -66,7 +66,7 @@ const dateFieldOperator = [{
     label: '相对',
 }];
 
-export const getDateFilter = (filterField: any, initValues: object, form: any): any => {
+export const getDateFilter = (filterField: any, initValues: object, form: any,labelWarrapCol:any): any => {
     const [section, setSection] = useState(form.getFieldValue([filterField.fieldname, 'operator']) || 'all');
     const [type, setType] = useState(form.getFieldValue([filterField.fieldname, 'operator1']) || 'this');
     const [clearSuffix, setClearSuffix] = useState(false);
@@ -206,7 +206,7 @@ export const getDateFilter = (filterField: any, initValues: object, form: any): 
     if ((form.getFieldValue([filterField.fieldname, 'operator']) || 'all') != section)
         setSection(form.getFieldValue([filterField.fieldname, 'operator']) || 'all');
 
-    return <Form.Item label={filterField.defaulttitle} >
+    return <Form.Item label={filterField.defaulttitle} {...labelWarrapCol} >
         {/* <button onClick={() => {
             console.log(section, type);
             console.log(form.getFieldValue(filterField.fieldname))

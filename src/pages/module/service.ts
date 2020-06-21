@@ -3,7 +3,6 @@ import { applyIf, apply } from '@/utils/utils';
 import { ModuleState } from './data';
 import { getAttachmentData } from './attachment/utils';
 import { FetchObjectResponse } from './data';
-import { changeUserFilterToParam } from './UserDefineFilter';
 import { getAllFilterAjaxParam } from './grid/filterUtils';
 
 

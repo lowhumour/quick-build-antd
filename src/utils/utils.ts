@@ -136,8 +136,27 @@ export const getFileExt = (filename: string): string => {
 }
 
 
+export const applyAllOtherSetting = (object: any) => {
+    if (Array.isArray(object)) {
+      object.forEach((o: any) => applyAllOtherSetting(o));
+    } else if (Object.prototype.toString.call(object) === '[object Object]') {
+      for (var i in object) {
+        if (i === 'othersetting') {
+          applyOtherSetting(object, object[i]);
+          //delete object[i];
+          //console.log(object)
+        } else {
+          applyAllOtherSetting(object[i]);
+        }
+      }
+    }
+}
+
+
 export const applyOtherSetting = (object: object, othersetting: string) => {
   if (othersetting) {
+    //console.log('11111111111111111111111111111111----------');
+    //console.log(object,othersetting);
     let ostr = {},
       s = '{' + othersetting + '}';
     try {

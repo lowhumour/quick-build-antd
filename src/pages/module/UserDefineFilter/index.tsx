@@ -7,9 +7,49 @@ import { getDateFilter, canUseThisDateFilter, arrageDataFilterToParam } from './
 import TagSelect from './TagSelect';
 import { getDictionaryData } from '../dictionary/dictionarys';
 
-const layout = {
-    labelCol: { span: 6 },
-    wrapperCol: { span: 18 },
+const _6_18_Layout = {
+    labelCol: {
+        xs: { span: 6 },
+        md: { span: 6 },
+        xl: { span: 6 },
+    },
+    wrapperCol: {
+        xs: { span: 18 },
+        md: { span: 18 },
+        xl: { span: 18 },
+    },
+};
+
+/** 二列合并的，使用以下 */
+const colTwoSpan = {
+    labelCol: {
+        xs: { span: 6 },
+        md: { span: 3 },
+        xl: { span: 3 },
+    },
+    wrapperCol: {
+        xs: { span: 18 },
+        md: { span: 21 },
+        xl: { span: 21 },
+    },
+}
+
+const colThreeSpan = {
+    labelCol: {
+        xs: { span: 6 },
+        md: { span: 3 },
+        xl: { span: 2 },
+    },
+    wrapperCol: {
+        xs: { span: 18 },
+        md: { span: 21 },
+        xl: { span: 22 },
+    },
+}
+
+const _3_21_Layout = {
+    labelCol: { span: 3 },
+    wrapperCol: { span: 21 },
 };
 
 const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
@@ -25,14 +65,20 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
     const scheme = getFilterScheme(moduleInfo);
     const [form] = Form.useForm();
     const getFilterForm = (scheme: any) => {
-        return <Row gutter={6}>
+        return <Row gutter={0}>
             {
                 scheme.details[0].details.map((filterField: any) => {
-                    return <Col span={8 * (filterField.colspan ? filterField.colspan : 1)}>
-                        {filterField.fDictionaryid ? getDictionaryFilter(filterField, initValues) :
-                            filterField.isNumberField ? getNumberFilter(filterField, initValues) :
-                                filterField.isDateField ? getDateFilter(filterField, initValues, form) :
-                                    getStringFilter(filterField, initValues)
+                    const labelWarrapCol = {};
+                    const colspan = filterField.colspan || 1;
+                    if (colspan == 2)
+                        apply(labelWarrapCol, colTwoSpan)
+                    else if (colspan == 3)
+                        apply(labelWarrapCol, colThreeSpan)
+                    return <Col xs={24} md={12 * Math.min(colspan, 2)} xl={8 * colspan}>
+                        {filterField.fDictionaryid ? getDictionaryFilter(filterField, initValues, form, labelWarrapCol) :
+                            filterField.isNumberField ? getNumberFilter(filterField, initValues, form, labelWarrapCol) :
+                                filterField.isDateField ? getDateFilter(filterField, initValues, form, labelWarrapCol) :
+                                    getStringFilter(filterField, initValues, form, labelWarrapCol)
                         }
                     </Col>
                 })
@@ -97,7 +143,7 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
 
     if (scheme)
         return <Card style={{ marginBottom: 16, padding: 16 }} >
-            <Form {...layout} form={form} initialValues={getStateInitValues()}>
+            <Form {..._6_18_Layout} form={form} initialValues={getStateInitValues()}>
                 {filterForm}
             </Form>
             <span style={{ display: 'flex' }}>
@@ -115,7 +161,7 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
 
 const { Option } = Select;
 
-const getDictionaryFilter = (filterField: any, initValues: object): any => {
+const getDictionaryFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
         operator: 'in',
@@ -124,33 +170,32 @@ const getDictionaryFilter = (filterField: any, initValues: object): any => {
     };
     const dictData: TextValue[] = getDictionaryData(filterField.fDictionaryid);
 
-    return <Form.Item label={filterField.defaulttitle} >
-        <Input.Group compact style={{ display: 'flex' }}>
-            <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                <Select mode="multiple" style={{ flex: 1 }} allowClear>
-                    {dictData.map((rec: TextValue) => <Option value={rec.value || ''}>{rec.text}</Option>)}
-                </Select>
-            </Form.Item>
-            <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                <Input type="hidden" />
-            </Form.Item>
-        </Input.Group>
-    </Form.Item>
+    return filterField.tagSelect ?
+        <Form.Item label={filterField.defaulttitle}   {...labelWarrapCol} >
+            <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                    <TagSelect expandable={false} expand={true} >
+                        {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
+                    </TagSelect>
+                </Form.Item>
+                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                    <Input type="hidden" />
+                </Form.Item>
+            </Input.Group>
+        </Form.Item> : <Form.Item label={filterField.defaulttitle} {...labelWarrapCol} >
+            <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                    <Select mode="multiple" style={{ flex: 1 }} allowClear>
+                        {dictData.map((rec: TextValue) => <Option value={rec.value || ''}>{rec.text}</Option>)}
+                    </Select>
+                </Form.Item>
+                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                    <Input type="hidden" />
+                </Form.Item>
+            </Input.Group>
+        </Form.Item>
 
 
-
-    return <Form.Item label={filterField.defaulttitle} >
-        <Input.Group compact style={{ display: 'flex' }}>
-            <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                <TagSelect expandable={false} expand={true} >
-                    {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
-                </TagSelect>
-            </Form.Item>
-            <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                <Input type="hidden" />
-            </Form.Item>
-        </Input.Group>
-    </Form.Item>
 
 }
 
@@ -185,7 +230,7 @@ export const numberFieldOperator: TextValue[] = [{
     value: 'not between',
     text: '区间外'
 }];
-const getNumberFilter = (filterField: any, initValues: object): any => {
+const getNumberFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
         operator: 'eq',
@@ -193,7 +238,7 @@ const getNumberFilter = (filterField: any, initValues: object): any => {
         type: 'number',
         title: filterField.defaulttitle,
     };
-    return <Form.Item label={filterField.defaulttitle} >
+    return <Form.Item label={filterField.defaulttitle}  {...labelWarrapCol}>
         <Input.Group compact style={{ display: 'flex' }}>
             <Form.Item
                 name={[filterField.fieldname, 'operator']}
@@ -242,7 +287,7 @@ export const stringFieldOperator: TextValue[] = [{
     value: 'regexp',
     text: '正则'
 }];
-const getStringFilter = (filterField: any, initValues: object): any => {
+const getStringFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
         operator: 'like',
@@ -251,7 +296,7 @@ const getStringFilter = (filterField: any, initValues: object): any => {
         title: filterField.defaulttitle,
 
     };
-    return <Form.Item label={filterField.defaulttitle} >
+    return <Form.Item label={filterField.defaulttitle}  {...labelWarrapCol}>
         <Input.Group compact style={{ display: 'flex' }}>
             <Form.Item
                 name={[filterField.fieldname, 'operator']}
