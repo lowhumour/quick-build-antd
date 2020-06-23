@@ -5,7 +5,8 @@ import { getFilterScheme, getModuleInfo } from '../modules';
 import { apply } from '@/utils/utils';
 import { getDateFilter, canUseThisDateFilter, arrageDataFilterToParam } from './dateFilter';
 import TagSelect from './TagSelect';
-import { getDictionaryData } from '../dictionary/dictionarys';
+import { getDictionaryData, convertDictionaryValueToText } from '../dictionary/dictionarys';
+import { getBooleanFilterOption, getBooleanInValueText } from '../grid/filterUtils';
 
 const _6_18_Layout = {
     labelCol: {
@@ -65,19 +66,28 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
     const scheme = getFilterScheme(moduleInfo);
     const [form] = Form.useForm();
     const getFilterForm = (scheme: any) => {
+        const cols = scheme.details[0].cols || 3;
         return <Row gutter={0}>
             {
                 scheme.details[0].details.map((filterField: any) => {
                     const labelWarrapCol = {};
-                    const colspan = filterField.colspan || 1;
-                    if (colspan == 2)
+                    const colspan = Math.min(filterField.colspan || 1, cols);
+                    if (cols == 1) {
+                        apply(labelWarrapCol, {
+                            labelCol: { span: 4 },
+                            wrapperCol: { span: 18 }
+                        })
+                    } else if (colspan == 2)
                         apply(labelWarrapCol, colTwoSpan)
                     else if (colspan == 3)
                         apply(labelWarrapCol, colThreeSpan)
-                    return <Col xs={24} md={12 * Math.min(colspan, 2)} xl={8 * colspan}>
+                    return <Col xs={24}
+                        md={cols == 1 ? 24 : 12 * Math.min(colspan, 2)}
+                        xl={cols == 1 ? 24 : (24 / cols) * Math.min(colspan, cols)}>
                         {filterField.fDictionaryid ? getDictionaryFilter(filterField, initValues, form, labelWarrapCol) :
                             filterField.isNumberField ? getNumberFilter(filterField, initValues, form, labelWarrapCol) :
                                 filterField.isDateField ? getDateFilter(filterField, initValues, form, labelWarrapCol) :
+                                filterField.isBooleanField ? getBooleanFilter(filterField, initValues, form, labelWarrapCol) :
                                     getStringFilter(filterField, initValues, form, labelWarrapCol)
                         }
                     </Col>
@@ -151,6 +161,13 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
                 <Space>
                     <Button type="primary" onClick={onSearch}>查询</Button>
                     <Button onClick={onReset}>重置</Button>
+                    <Button onClick={() => {
+                        console.log(form.getFieldsValue());
+                        console.log(1=='1' , 1==='1');
+                        console.log(null=='null');
+                    }
+                        }>条件</Button>
+
                 </Space>
             </span>
         </Card>
@@ -167,9 +184,10 @@ const getDictionaryFilter = (filterField: any, initValues: object, form: any, la
         operator: 'in',
         value: undefined,
         title: filterField.defaulttitle,
+        fDictionaryid: filterField.fDictionaryid,
     };
     const dictData: TextValue[] = getDictionaryData(filterField.fDictionaryid);
-
+    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
     return filterField.tagSelect ?
         <Form.Item label={filterField.defaulttitle}   {...labelWarrapCol} >
             <Input.Group compact style={{ display: 'flex' }}>
@@ -194,10 +212,46 @@ const getDictionaryFilter = (filterField: any, initValues: object, form: any, la
                 </Form.Item>
             </Input.Group>
         </Form.Item>
-
-
-
 }
+
+
+const getBooleanFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+    initValues[filterField.fieldname] = {
+        property: filterField.fieldname,
+        operator: 'in',
+        value: undefined,
+        title: filterField.defaulttitle,
+        type: 'boolean',
+    };
+    const dictData: TextValue[] = getBooleanFilterOption(false);
+    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
+    return filterField.tagSelect ?
+        <Form.Item label={filterField.defaulttitle}   {...labelWarrapCol} >
+            <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                    <TagSelect expandable={false} expand={true} >
+                        {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
+                    </TagSelect>
+                </Form.Item>
+                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                    <Input type="hidden" />
+                </Form.Item>
+            </Input.Group>
+        </Form.Item> : <Form.Item label={filterField.defaulttitle} {...labelWarrapCol} >
+            <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                    <Select mode="multiple" style={{ flex: 1 }} allowClear>
+                        {dictData.map((rec: TextValue) => <Option value={rec.value || ''}>{rec.text}</Option>)}
+                    </Select>
+                </Form.Item>
+                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                    <Input type="hidden" />
+                </Form.Item>
+            </Input.Group>
+        </Form.Item>
+}
+
+
 
 export const numberFieldOperator: TextValue[] = [{
     value: 'eq',
@@ -320,17 +374,27 @@ const getStringFilter = (filterField: any, initValues: object, form: any, labelW
 /**
  * 把用户自定义条件，转化成ajax需要的参数
  * @param userfilter 
+ * @param addText
+ * @param separater in 的所有数据的连接符',' 或者 <br />
  */
-export const changeUserFilterToParam = (userfilter: any, addText: boolean = false): any[] => {
+export const changeUserFilterToParam = (userfilter: any, addText: boolean = false , 
+        separater : string = ''): any[] => {
     let result = [];
     if (userfilter && userfilter.length) {
-        const filter = userfilter.filter((f: any) => {
+        const filters = userfilter.filter((f: any) => {
             if (f.searchfor === 'date')
                 return canUseThisDateFilter(f);
             return isEmptyOrEmptyArray(f.value)
         });
-        result = filter.map((f: any) => {
-            return f.searchfor === 'date' ? arrageDataFilterToParam(f, addText) : f
+        result = filters.map((filter: any) => {
+            const f = {...filter};
+            if (f.searchfor === 'date')
+                return arrageDataFilterToParam(f, addText);
+            if (addText && f.fDictionaryid)
+                f.value = convertDictionaryValueToText(f.fDictionaryid, f.value, separater);
+            if (addText && f.type == 'boolean')
+                f.value = getBooleanInValueText(f.value);
+            return f;
         });
     }
     return result;

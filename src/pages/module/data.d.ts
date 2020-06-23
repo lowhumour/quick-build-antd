@@ -106,6 +106,7 @@ export interface UserFilter {
     text?: string,
     searchfor?: string,
     type?: string,
+    fDictionaryid?: string,
 }
 
 export interface TextValue {

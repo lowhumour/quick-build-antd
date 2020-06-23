@@ -1,5 +1,5 @@
 import { Key } from "react";
-import { ColumnFilter, ColumnFilterType, ModuleState } from "../data";
+import { ColumnFilter, ColumnFilterType, ModuleState, TextValue } from "../data";
 import { getUserFilterCount, stringFieldOperator, numberFieldOperator, changeUserFilterToParam } from "../UserDefineFilter";
 
 /**
@@ -62,11 +62,11 @@ export const getAllFilterAjaxText = (moduleState: ModuleState): any[] => {
     const { moduleName } = moduleState;
     const result: any[] = [];
 
-    result.push(...changeUserFilterToParam(moduleState.filters.userfilter, true).
+    result.push(...changeUserFilterToParam(moduleState.filters.userfilter, true, ',').
         map((f: any) => {
             const result = { ...f };
             result.property = result.title;
-            result.operator = getOperateTitle(result.operator); 
+            result.operator = getOperateTitle(result.operator);
             delete result.title;
             return result;
         }))
@@ -205,16 +205,28 @@ export const getNumberColumnFilterValue = (columnFilter: ColumnFilter[] = [], co
     return null;
 }
 
-export const getBooleanFilter = (isrequired: boolean) => {
+export const getBooleanFilterOption = (isrequired: boolean): TextValue[] => {
     return isrequired ? [
-        { text: '是', value: 1, },
-        { text: '否', value: 0, },
+        { text: '是', value: '1', },
+        { text: '否', value: '0', },
     ] : [
-            { text: '是', value: 1, },
-            { text: '否', value: 0, },
+            { text: '是', value: '1', },
+            { text: '否', value: '0', },
             { text: '未定义', value: 'null', }
         ];
 };
+
+export const getBooleanInValueText = (values : any) => {
+    const data = getBooleanFilterOption(false);
+    const arrayResult: any[] = values.map((value: any) => {
+        for (let i in data) {
+            if (data[i].value == value )
+                return data[i].text;
+        }
+        return value;
+    })
+    return arrayResult.join(',')
+}
 
 
 export const NumberSelectOption = [

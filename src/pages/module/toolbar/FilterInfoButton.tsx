@@ -119,7 +119,7 @@ const FilterInfoButton = ({ moduleState: moduleState, dispatch, clearUserDefineF
             <b>视图方案：{moduleState.filters.viewscheme.title}</b>
         </List.Item></List>
 
-    const userFilter = changeUserFilterToParam(moduleState.filters.userfilter, true);
+    const userFilter = changeUserFilterToParam(moduleState.filters.userfilter, true , '<br />');
     const userFilterMenu = <List style={{ border: '1px solid #f0f0f0', }} size="small">
         <List.Item key="info"
             actions={[<a onClick={() => {
@@ -136,8 +136,9 @@ const FilterInfoButton = ({ moduleState: moduleState, dispatch, clearUserDefineF
                     <Item style={{ width: 100, paddingBottom: 0 }} key="title">{item.title}</Item>
                     <Item style={{ width: 60, paddingBottom: 0 }} key="operator">
                         <span>{getOperateTitle(item.operator)}</span></Item>
-                    <Item style={{ width: 205, paddingBottom: 0 }} key="value">
-                        <span dangerouslySetInnerHTML={{ __html: item.value }}></span>
+                    <Item style={{ width: 205, paddingBottom: 0 }} key="value">{
+                            <span dangerouslySetInnerHTML={{ __html: item.value }}></span>
+                    }
                     </Item>
                     <Item style={{ width: 40, paddingBottom: 0 }} key="action">
                     </Item>

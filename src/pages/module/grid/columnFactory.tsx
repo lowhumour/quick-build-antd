@@ -16,7 +16,7 @@ import {
   integerRender, floatRender, percentRender, monetaryRender
 } from './columnRender';
 import {
-  getColumnFilterValue, getBooleanFilter, getStringColumnFilterValue,
+  getColumnFilterValue, getBooleanFilterOption, getStringColumnFilterValue,
   getNumberColumnFilterValue, getColumnFilterInfo, NumberSelectOption
 } from './filterUtils';
 import { apply, applyIf, applyOtherSetting } from '@/utils/utils';
@@ -28,7 +28,7 @@ import { attachemntRenderer } from '../attachment/utils';
 import { getMonetarysValueText } from './monetary';
 
 // import { getSortOrder } from './sortUtils';
-// import { getColumnFilterValue, getBooleanFilter } from './filterUtils';
+// import { getColumnFilterValue, getBooleanFilterOption } from './filterUtils';
 // import { DictionaryDefine } from '@/models/dictionary';
 
 const moduleExportGridColumnDefine: Record<Key, object> = {};
@@ -474,7 +474,7 @@ const setFieldxtype = (field: any, fieldtype: string, moduleState: ModuleState,
       break;
     case 'boolean':
       field.render = booleanRenderer;
-      field.filters = getBooleanFilter(field.fieldDefine.isrequired);
+      field.filters = getBooleanFilterOption(field.fieldDefine.isrequired);
       field.filteredValue = getColumnFilterValue(moduleState.filters.columnfilter, field.key);
       columnFilterInfo.type = 'combobox';
       columnFilterInfo.comboValue = field.filters;
