@@ -158,6 +158,10 @@ export default defineConfig({
                 name: 'FSysteminfo',
                 path: '/module/FSysteminfo',
                 component: './module'
+              },{
+                name: 'FPersonnel',
+                path: '/module/FPersonnel',
+                component: './module'
               },]
             },
 

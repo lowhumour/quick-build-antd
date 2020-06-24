@@ -216,6 +216,7 @@ export const getBooleanFilterOption = (isrequired: boolean): TextValue[] => {
         ];
 };
 
+// 把选择的是否，null,转换成文本显示
 export const getBooleanInValueText = (values : any) => {
     const data = getBooleanFilterOption(false);
     const arrayResult: any[] = values.map((value: any) => {

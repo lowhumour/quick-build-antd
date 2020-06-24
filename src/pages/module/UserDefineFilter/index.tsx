@@ -1,7 +1,10 @@
 import React from 'react';
-import { Card, Button, Space, Row, Col, Form, Input, Select } from 'antd';
+import { Card, Button, Space, Row, Col, Form, Input, Select, TreeSelect } from 'antd';
 import { ModuleState, TextValue } from '../data';
-import { getFilterScheme, getModuleInfo } from '../modules';
+import {
+    getFilterScheme, getModuleInfo, getModuleComboDataSource,
+    getModulTreeDataSource, convertModuleIdValuesToText
+} from '../modules';
 import { apply } from '@/utils/utils';
 import { getDateFilter, canUseThisDateFilter, arrageDataFilterToParam } from './dateFilter';
 import TagSelect from './TagSelect';
@@ -53,6 +56,8 @@ const _3_21_Layout = {
     wrapperCol: { span: 21 },
 };
 
+const OPERATEWIDTH = 90;
+
 const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
     { moduleState: ModuleState, dispatch: any, clearUserDefineFunc: any }) => {
     const initValues = {
@@ -87,8 +92,11 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
                         {filterField.fDictionaryid ? getDictionaryFilter(filterField, initValues, form, labelWarrapCol) :
                             filterField.isNumberField ? getNumberFilter(filterField, initValues, form, labelWarrapCol) :
                                 filterField.isDateField ? getDateFilter(filterField, initValues, form, labelWarrapCol) :
-                                filterField.isBooleanField ? getBooleanFilter(filterField, initValues, form, labelWarrapCol) :
-                                    getStringFilter(filterField, initValues, form, labelWarrapCol)
+                                    filterField.isBooleanField ? getBooleanFilter(filterField, initValues, form, labelWarrapCol) :
+                                        filterField.xtype == 'usermanytoonetreefilter' ?
+                                            getManyToOneTreeFilter(filterField, initValues, form, labelWarrapCol) :
+                                            filterField.manyToOneInfo ? getManyToOneFilter(filterField, initValues, form, labelWarrapCol) :
+                                                getStringFilter(filterField, initValues, form, labelWarrapCol)
                         }
                     </Col>
                 })
@@ -163,10 +171,8 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
                     <Button onClick={onReset}>重置</Button>
                     <Button onClick={() => {
                         console.log(form.getFieldsValue());
-                        console.log(1=='1' , 1==='1');
-                        console.log(null=='null');
                     }
-                        }>条件</Button>
+                    }>条件</Button>
 
                 </Space>
             </span>
@@ -179,17 +185,19 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
 const { Option } = Select;
 
 const getDictionaryFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+    const title = filterField.title || filterField.defaulttitle;
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
         operator: 'in',
         value: undefined,
-        title: filterField.defaulttitle,
+        title,
         fDictionaryid: filterField.fDictionaryid,
     };
     const dictData: TextValue[] = getDictionaryData(filterField.fDictionaryid);
     /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
+    const options = dictData.map((rec: TextValue) => ({ value: rec.value || '', label: rec.text }));
     return filterField.tagSelect ?
-        <Form.Item label={filterField.defaulttitle}   {...labelWarrapCol} >
+        <Form.Item label={title}   {...labelWarrapCol} >
             <Input.Group compact style={{ display: 'flex' }}>
                 <Form.Item name={[filterField.fieldname, 'value']} noStyle>
                     <TagSelect expandable={false} expand={true} >
@@ -200,11 +208,47 @@ const getDictionaryFilter = (filterField: any, initValues: object, form: any, la
                     <Input type="hidden" />
                 </Form.Item>
             </Input.Group>
-        </Form.Item> : <Form.Item label={filterField.defaulttitle} {...labelWarrapCol} >
+        </Form.Item> : <Form.Item label={title} {...labelWarrapCol} >
             <Input.Group compact style={{ display: 'flex' }}>
                 <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <Select mode="multiple" style={{ flex: 1 }} allowClear>
-                        {dictData.map((rec: TextValue) => <Option value={rec.value || ''}>{rec.text}</Option>)}
+                    <Select mode="multiple" style={{ flex: 1 }} allowClear options={options} optionFilterProp="label">
+                    </Select>
+                </Form.Item>
+                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                    <Input type="hidden" />
+                </Form.Item>
+            </Input.Group>
+        </Form.Item>
+}
+
+const getManyToOneFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+    const title = filterField.title || filterField.defaulttitle;
+    initValues[filterField.fieldname] = {
+        property: filterField.fieldname,
+        operator: 'in',
+        value: undefined,
+        title,
+        manyToOneObject: filterField.manyToOneInfo.objectname,
+    };
+    const dictData: TextValue[] = getModuleComboDataSource(filterField.manyToOneInfo.objectname);
+    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
+    const options = dictData.map((rec: TextValue) => ({ value: rec.value || '', label: rec.text }));
+    return filterField.tagSelect ?
+        <Form.Item label={title}   {...labelWarrapCol} >
+            <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                    <TagSelect expandable={true} expand={true} >
+                        {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
+                    </TagSelect>
+                </Form.Item>
+                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                    <Input type="hidden" />
+                </Form.Item>
+            </Input.Group>
+        </Form.Item> : <Form.Item label={title} {...labelWarrapCol} >
+            <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                    <Select mode="multiple" style={{ flex: 1 }} allowClear options={options} optionFilterProp="label">
                     </Select>
                 </Form.Item>
                 <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
@@ -215,18 +259,55 @@ const getDictionaryFilter = (filterField: any, initValues: object, form: any, la
 }
 
 
+const { SHOW_PARENT } = TreeSelect;
+const getManyToOneTreeFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+    const title = filterField.title || filterField.defaulttitle;
+    initValues[filterField.fieldname] = {
+        property: filterField.fieldname,
+        operator: 'startwith',
+        value: undefined,
+        title,
+        manyToOneTreeObject: filterField.manyToOneInfo.objectname,
+    };
+    const dictData: TextValue[] = getModulTreeDataSource(filterField.manyToOneInfo.objectname);
+    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
+    const arrageTreeNode = (array: any): TextValue[] => {
+        return array.map((rec: TextValue) => ({
+            value: rec.value || '',
+            label: rec.text,
+            key: rec.value,
+            children: rec.children && rec.children.length > 0 ? arrageTreeNode(rec.children) : null
+        }));
+    };
+
+    const options = arrageTreeNode(dictData);
+    return <Form.Item label={title} {...labelWarrapCol} >
+        <Input.Group compact style={{ display: 'flex' }}>
+            <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                <TreeSelect style={{ flex: 1 }} allowClear showCheckedStrategy={SHOW_PARENT}
+                    treeData={options} optionFilterProp="label" treeCheckable={true} treeDefaultExpandAll={true}>
+                </TreeSelect>
+            </Form.Item>
+            <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                <Input type="hidden" />
+            </Form.Item>
+        </Input.Group>
+    </Form.Item>
+}
+
 const getBooleanFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+    const title = filterField.title || filterField.defaulttitle;
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
         operator: 'in',
         value: undefined,
-        title: filterField.defaulttitle,
+        title,
         type: 'boolean',
     };
     const dictData: TextValue[] = getBooleanFilterOption(false);
     /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
     return filterField.tagSelect ?
-        <Form.Item label={filterField.defaulttitle}   {...labelWarrapCol} >
+        <Form.Item label={title}   {...labelWarrapCol} >
             <Input.Group compact style={{ display: 'flex' }}>
                 <Form.Item name={[filterField.fieldname, 'value']} noStyle>
                     <TagSelect expandable={false} expand={true} >
@@ -237,7 +318,7 @@ const getBooleanFilter = (filterField: any, initValues: object, form: any, label
                     <Input type="hidden" />
                 </Form.Item>
             </Input.Group>
-        </Form.Item> : <Form.Item label={filterField.defaulttitle} {...labelWarrapCol} >
+        </Form.Item> : <Form.Item label={title} {...labelWarrapCol} >
             <Input.Group compact style={{ display: 'flex' }}>
                 <Form.Item name={[filterField.fieldname, 'value']} noStyle>
                     <Select mode="multiple" style={{ flex: 1 }} allowClear>
@@ -285,20 +366,21 @@ export const numberFieldOperator: TextValue[] = [{
     text: '区间外'
 }];
 const getNumberFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+    const title = filterField.title || filterField.defaulttitle;
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
         operator: 'eq',
         value: undefined,
         type: 'number',
-        title: filterField.defaulttitle,
+        title,
     };
-    return <Form.Item label={filterField.defaulttitle}  {...labelWarrapCol}>
+    return <Form.Item label={title}  {...labelWarrapCol}>
         <Input.Group compact style={{ display: 'flex' }}>
             <Form.Item
                 name={[filterField.fieldname, 'operator']}
                 noStyle
             >
-                <Select style={{ width: 70 }}>
+                <Select style={{ width: OPERATEWIDTH }}>
                     {numberFieldOperator.map((idtext: any) =>
                         <Option value={idtext.value}>{idtext.text}</Option>)}
                 </Select>
@@ -342,21 +424,21 @@ export const stringFieldOperator: TextValue[] = [{
     text: '正则'
 }];
 const getStringFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+    const title = filterField.title || filterField.defaulttitle;
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
         operator: 'like',
         value: undefined,
         type: 'string',
-        title: filterField.defaulttitle,
-
+        title,
     };
-    return <Form.Item label={filterField.defaulttitle}  {...labelWarrapCol}>
+    return <Form.Item label={title}  {...labelWarrapCol}>
         <Input.Group compact style={{ display: 'flex' }}>
             <Form.Item
                 name={[filterField.fieldname, 'operator']}
                 noStyle
             >
-                <Select style={{ width: 70 }}>
+                <Select style={{ width: OPERATEWIDTH }}>
                     {stringFieldOperator.map((idtext: any) =>
                         <Option value={idtext.value}>{idtext.text}</Option>)}
                 </Select>
@@ -377,8 +459,8 @@ const getStringFilter = (filterField: any, initValues: object, form: any, labelW
  * @param addText
  * @param separater in 的所有数据的连接符',' 或者 <br />
  */
-export const changeUserFilterToParam = (userfilter: any, addText: boolean = false , 
-        separater : string = ''): any[] => {
+export const changeUserFilterToParam = (userfilter: any, addText: boolean = false,
+    separater: string = ''): any[] => {
     let result = [];
     if (userfilter && userfilter.length) {
         const filters = userfilter.filter((f: any) => {
@@ -387,13 +469,17 @@ export const changeUserFilterToParam = (userfilter: any, addText: boolean = fals
             return isEmptyOrEmptyArray(f.value)
         });
         result = filters.map((filter: any) => {
-            const f = {...filter};
+            const f = { ...filter };
             if (f.searchfor === 'date')
                 return arrageDataFilterToParam(f, addText);
-            if (addText && f.fDictionaryid)
-                f.value = convertDictionaryValueToText(f.fDictionaryid, f.value, separater);
-            if (addText && f.type == 'boolean')
-                f.value = getBooleanInValueText(f.value);
+            if (addText) {
+                if (f.fDictionaryid)
+                    f.value = convertDictionaryValueToText(f.fDictionaryid, f.value, separater);
+                else if (f.type == 'boolean')
+                    f.value = getBooleanInValueText(f.value);
+                else if (f.manyToOneObject)
+                    f.value = convertModuleIdValuesToText(f.manyToOneObject, f.value, separater);
+            }
             return f;
         });
     }

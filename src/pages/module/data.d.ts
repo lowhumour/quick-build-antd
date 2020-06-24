@@ -112,6 +112,7 @@ export interface UserFilter {
 export interface TextValue {
     text: string | undefined;
     value: string | undefined;
+    children?: TextValue[]
 }
 
 interface NavigateSetting {

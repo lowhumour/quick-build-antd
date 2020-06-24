@@ -1,9 +1,10 @@
 import { ModuleModal, TextValue } from "./data";
-import { querySyncModuleInfo, fetchObjectComboData } from "./service";
+import { querySyncModuleInfo, fetchObjectComboData, fetchObjectComboTreeData } from "./service";
 import { applyAllOtherSetting } from "@/utils/utils";
 
 const modules: Record<string, ModuleModal> = {};
 const moduleComboDataSource: Record<string, TextValue[]> = {}
+const moduleTreeDataSource: Record<string, TextValue[]> = {}
 
 export const getModuleComboDataSource = (moduleName: string): TextValue[] => {
     if (!moduleComboDataSource[moduleName]) {
@@ -11,6 +12,34 @@ export const getModuleComboDataSource = (moduleName: string): TextValue[] => {
     }
     return moduleComboDataSource[moduleName];
 }
+
+export const getModulTreeDataSource = (moduleName: string): TextValue[] => {
+    if (!moduleTreeDataSource[moduleName]) {
+        moduleTreeDataSource[moduleName] = fetchObjectComboTreeData({ moduleName }) as TextValue[];
+    }
+    return moduleTreeDataSource[moduleName];
+}
+
+
+// 将某些manytoone数组值，转换为文字描述,如果有separator,转换成字符串，否则转换成 数组
+export const convertModuleIdValuesToText = (moduleName: string, values: any[], separator: string | undefined): any => {
+    if (!Array.isArray(values))
+        return values;
+    const data = getModuleComboDataSource(moduleName);
+    const arrayResult: any[] = values.map((value: any) => {
+        for (let i in data) {
+            if (data[i].value == value)
+                return data[i].text;
+        }
+        return value;
+    })
+    if (separator)
+        return arrayResult.join(separator);
+    else
+        return arrayResult;
+}
+
+
 
 export const getModuleInfo = (moduleName: string): ModuleModal => {
     if (!modules[moduleName]) {

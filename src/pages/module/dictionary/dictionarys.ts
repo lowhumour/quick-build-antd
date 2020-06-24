@@ -44,7 +44,7 @@ export const getDictionaryData = (dictionaryid: string): TextValue[] => {
 }
 
 // 将某个数字典的数组值，转换为文字描述,如果有separator,转换成字符串，否则转换成 数组
-export const convertDictionaryValueToText = (dictionaryid: string, values: any[], separator: string | undefined) => {
+export const convertDictionaryValueToText = (dictionaryid: string, values: any[], separator: string | undefined): any => {
     console.log(dictionaryid);
     console.log(values);
 

@@ -170,6 +170,18 @@ export function fetchObjectComboData(params: any) {
 
 
 /**
+ * 获取模块作为treedata的数据
+ * @param params 
+ * moduleName: moduleName
+ */
+export function fetchObjectComboTreeData(params: any) {
+  return syncRequest(`/api/platform/dataobject/fetchpickertreedata.do`, {
+    params: params,
+  })
+}
+
+
+/**
  * 下载grid表单的excel或pdf文件
  * @param params 
  *          moduleName: moduleName,
