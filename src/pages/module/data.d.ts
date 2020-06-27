@@ -3,6 +3,7 @@
  */
 
 import { MonetaryType } from "./grid/monetary";
+import { ReactNode } from "react";
 
 
 // 模块字段类型
@@ -88,6 +89,7 @@ export interface UserLimit {
 export interface SortModal {
     property: Key;
     direction: 'ASC' | 'DESC';
+    title?: any;
 }
 
 export interface ColumnFilter {
@@ -110,8 +112,9 @@ export interface UserFilter {
 }
 
 export interface TextValue {
-    text: string | undefined;
+    text: string | undefined | ReactNode;
     value: string | undefined;
+    label?: string | undefined; 
     children?: TextValue[]
 }
 
@@ -176,6 +179,7 @@ export interface ModuleModal {
     userdefinedsorts: any[],
     navigateSchemes: any[],
     filterSchemes: any,
+    sortSchemes: any,
 }
 
 export interface ModuleFilters {

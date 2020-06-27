@@ -45,18 +45,15 @@ export const getDictionaryData = (dictionaryid: string): TextValue[] => {
 
 // 将某个数字典的数组值，转换为文字描述,如果有separator,转换成字符串，否则转换成 数组
 export const convertDictionaryValueToText = (dictionaryid: string, values: any[], separator: string | undefined): any => {
-    console.log(dictionaryid);
-    console.log(values);
-
     if (!Array.isArray(values))
-        return values;
+        values = [values];
     const data = getDictionaryData(dictionaryid);
     const arrayResult: any[] = values.map((value: any) => {
         for (let i in data) {
             if (data[i].value == value)
                 return data[i].text;
         }
-        return value;
+        return value == 'null' ? '未定义' : value;
     })
     if (separator)
         return arrayResult.join(separator);

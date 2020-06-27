@@ -66,6 +66,14 @@ const dateFieldOperator = [{
     label: '相对',
 }];
 
+/**
+ * 可以在filterField中指定 operator 'all|year|monthquarter|day' ,operator1 'select|section|relative'
+ * @param filterField 
+ * @param initValues 
+ * @param form 
+ * @param labelWarrapCol 
+ */
+
 export const getDateFilter = (filterField: any, initValues: object, form: any,labelWarrapCol:any): any => {
     const [section, setSection] = useState(form.getFieldValue([filterField.fieldname, 'operator']) || 'all');
     const [type, setType] = useState(form.getFieldValue([filterField.fieldname, 'operator1']) || 'this');
@@ -85,8 +93,8 @@ export const getDateFilter = (filterField: any, initValues: object, form: any,la
         setClearSuffix(false);
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
-        operator: 'all',
-        operator1: 'this',
+        operator: filterField.operator || 'all',
+        operator1: filterField.operator1 || 'this',
         value: undefined,
         text: undefined,
         searchfor: 'date',
@@ -253,10 +261,14 @@ export const getDateFilter = (filterField: any, initValues: object, form: any,la
 
 
 export const canUseThisDateFilter = (f: any): boolean => {
+    console.log(f)
     if (f.operator === 'all')
         return false;
-    if (f.operator1 === 'section' && f.value[0] == null && f.value[1] == null)
+    if (f.operator1 === 'section'){
+        if (f.value)
+            if (f.value[0] == null && f.value[1] == null)
         return false;
+    }
     return !!f.value;
 }
 

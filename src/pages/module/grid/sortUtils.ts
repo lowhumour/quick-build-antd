@@ -16,9 +16,11 @@ import { SortModal } from "../data";
 export const getGridColumnSorts = (sorters: SorterResult<any> | SorterResult<any>[]): SortModal[] => {
     const sorts: SortModal[] = new Array();
     const getColumnSort = (sorter: SorterResult<any>): SortModal => {
+        console.log(sorter)
         const result: SortModal = {
             property: sorter.columnKey,
             direction: sorter.order === 'ascend' ? 'ASC' : 'DESC',
+            title : sorter.column && sorter.column['menuText'],
         }
         return result;
     }

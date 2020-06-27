@@ -207,21 +207,23 @@ export const getNumberColumnFilterValue = (columnFilter: ColumnFilter[] = [], co
 
 export const getBooleanFilterOption = (isrequired: boolean): TextValue[] => {
     return isrequired ? [
-        { text: '是', value: '1', },
-        { text: '否', value: '0', },
+        { text: '是', value: '1', label: '是' },
+        { text: '否', value: '0', label: '否' },
     ] : [
-            { text: '是', value: '1', },
-            { text: '否', value: '0', },
-            { text: '未定义', value: 'null', }
+            { text: '是', value: '1', label: '是' },
+            { text: '否', value: '0', label: '否' },
+            { text: '未定义', value: 'null', label: '未定义' }
         ];
 };
 
 // 把选择的是否，null,转换成文本显示
-export const getBooleanInValueText = (values : any) => {
+export const getBooleanInValueText = (values: any) => {
+    if (!Array.isArray(values))
+        values = [values];
     const data = getBooleanFilterOption(false);
     const arrayResult: any[] = values.map((value: any) => {
         for (let i in data) {
-            if (data[i].value == value )
+            if (data[i].value == value)
                 return data[i].text;
         }
         return value;

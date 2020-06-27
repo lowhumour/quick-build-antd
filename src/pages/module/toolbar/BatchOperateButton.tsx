@@ -79,7 +79,7 @@ const BatchOperateButton = ({ moduleState, dispatch }:
 
     const menu = <Menu>
         {canDelete(moduleInfo) ?
-            <Menu.Item key="deleteSelectRecords" icon={<DeleteOutlined />}
+            <Menu.Item danger key="deleteSelectRecords" icon={<DeleteOutlined />}
                 onClick={() => setDeleteModalVisible(true)}
             >删除选中记录</Menu.Item> : null}
         <Menu.Divider />

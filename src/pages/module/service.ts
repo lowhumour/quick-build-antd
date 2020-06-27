@@ -52,7 +52,7 @@ export async function fetchObjectDataWithState(moduleState: ModuleState) {
     payload.limit = gridParams.limit;
     payload.start = gridParams.start;
 
-    apply(payload , getAllFilterAjaxParam(moduleState));
+    apply(payload, getAllFilterAjaxParam(moduleState));
 
     if (sorts.length) {
       payload.sort = JSON.stringify(sorts);
@@ -233,6 +233,19 @@ export async function fetchNavigateTreeData(params: any) {
   return request('/api/platform/navigatetree/fetchnavigatedata.do', {
     params,
   });
+}
+
+/**
+ * 读取一个导航方案中的数据(同步)
+ */
+export function fetchNavigateTreeDataSync(params: any): any {
+  applyIf(params, {
+    reverseOrder: 0,
+    parentFilter: null,
+  });
+  return syncRequest('/api/platform/navigatetree/fetchnavigatedata.do', {
+    params
+  })
 }
 
 

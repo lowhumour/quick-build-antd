@@ -1,15 +1,17 @@
 import React from 'react';
-import { Card, Button, Space, Row, Col, Form, Input, Select, TreeSelect } from 'antd';
+import { Card, Button, Space, Row, Col, Form, Input, Select, TreeSelect, Checkbox, Radio } from 'antd';
 import { ModuleState, TextValue } from '../data';
 import {
     getFilterScheme, getModuleInfo, getModuleComboDataSource,
-    getModulTreeDataSource, convertModuleIdValuesToText
+    getModulTreeDataSource, convertModuleIdValuesToText, convertTreeModuleIdValuesToText
 } from '../modules';
 import { apply } from '@/utils/utils';
 import { getDateFilter, canUseThisDateFilter, arrageDataFilterToParam } from './dateFilter';
 import TagSelect from './TagSelect';
 import { getDictionaryData, convertDictionaryValueToText } from '../dictionary/dictionarys';
 import { getBooleanFilterOption, getBooleanInValueText } from '../grid/filterUtils';
+import { fetchNavigateTreeDataSync } from '../service';
+import styles from './index.less';
 
 const _6_18_Layout = {
     labelCol: {
@@ -51,10 +53,62 @@ const colThreeSpan = {
     },
 }
 
-const _3_21_Layout = {
-    labelCol: { span: 3 },
-    wrapperCol: { span: 21 },
-};
+
+/**
+ * 所有用户筛选方案的detailid的记录个数的存放
+ */
+const detailidNavigateCountCache = {};
+
+/**
+ * 取得一个筛选字段按照导航方式获取的数据，里面有记录数
+ * @param moduleState 
+ * @param filterField 
+ */
+const getFieldNavigateCountArray = (moduleState: ModuleState, filterField: any): any[] => {
+    const { moduleName } = moduleState;
+    const title = filterField.title || filterField.defaulttitle;
+    const { fieldname, detailid } = filterField;
+
+    if (!detailidNavigateCountCache[detailid])
+    detailidNavigateCountCache[detailid] = fetchNavigateTreeDataSync({
+            moduleName,
+            title,
+            navigateschemeid: fieldname,
+            cascading: false,
+            isContainNullRecord: false
+        }).children[0].children.map((rec: any) => ({
+            value: rec.fieldvalue === '_null_' ? 'null' : rec.fieldvalue,
+            count: rec.count,
+            text: rec.text,
+        }))
+    return detailidNavigateCountCache[detailid];
+}
+
+const addCountToText = (array: any[], moduleState: ModuleState, filterField: any) => {
+    if (!(filterField.addCount === false))
+        array.forEach((rec: TextValue) => {
+            getFieldNavigateCountArray(moduleState, filterField).forEach((nrec: any) => {
+                if (rec.value == nrec.value)
+                    rec.text = <span>{rec.text}
+                        <span className={styles.filterCount} >{'(' + nrec.count + ')'}</span>
+                    </span>;
+            })
+        })
+}
+
+
+/**
+ * 自定义筛选的附件属性：
+ * allowEmpty : true // 允许为空值(默认为false)：boolean类型，manytoone, dictionary 都会加入 未定义值
+ * addCount : false  // 不加入boolean,manytoone,dictionary 的记录数(默认为true)
+ * comboThisField : true // 按照当前字段的值的字义来展示，按照navigate的模式来处理,和dictionary类似
+ * tagSelect : true  // 使用tag方式选择筛选条件，boolean类型，manytoone, dictionary 有效
+ *          tagSelect:可配置属性 
+ *                  expandable:true|false, 
+ *                  expand= !expandable || true|false 
+ * checkbox : true  // 使用checkbox多选的方式来进行筛选条件，boolean ,manytoone,dictionary有效
+ * radio : true  // 使用radio 单选的方式来进行筛选条件，boolean ,manytoone,dictionary有效
+ */
 
 const OPERATEWIDTH = 90;
 
@@ -86,17 +140,21 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
                         apply(labelWarrapCol, colTwoSpan)
                     else if (colspan == 3)
                         apply(labelWarrapCol, colThreeSpan)
+                    const params = {
+                        moduleState, filterField, initValues, form, labelWarrapCol
+                    }
                     return <Col xs={24}
                         md={cols == 1 ? 24 : 12 * Math.min(colspan, 2)}
                         xl={cols == 1 ? 24 : (24 / cols) * Math.min(colspan, cols)}>
-                        {filterField.fDictionaryid ? getDictionaryFilter(filterField, initValues, form, labelWarrapCol) :
-                            filterField.isNumberField ? getNumberFilter(filterField, initValues, form, labelWarrapCol) :
-                                filterField.isDateField ? getDateFilter(filterField, initValues, form, labelWarrapCol) :
-                                    filterField.isBooleanField ? getBooleanFilter(filterField, initValues, form, labelWarrapCol) :
-                                        filterField.xtype == 'usermanytoonetreefilter' ?
-                                            getManyToOneTreeFilter(filterField, initValues, form, labelWarrapCol) :
-                                            filterField.manyToOneInfo ? getManyToOneFilter(filterField, initValues, form, labelWarrapCol) :
-                                                getStringFilter(filterField, initValues, form, labelWarrapCol)
+                        {filterField.comboThisField ? getComboThisFieldFilter(params) :
+                            filterField.fDictionaryid ? getDictionaryFilter(params) :
+                                filterField.isNumberField ? getNumberFilter(filterField, initValues, form, labelWarrapCol) :
+                                    filterField.isDateField ? getDateFilter(filterField, initValues, form, labelWarrapCol) :
+                                        filterField.isBooleanField ? getBooleanFilter(params) :
+                                            filterField.xtype == 'usermanytoonetreefilter' ?
+                                                getManyToOneTreeFilter(filterField, initValues, form, labelWarrapCol) :
+                                                filterField.manyToOneInfo ? getManyToOneFilter(params) :
+                                                    getStringFilter(filterField, initValues, form, labelWarrapCol)
                         }
                     </Col>
                 })
@@ -184,7 +242,97 @@ const UserDefineFilter = ({ moduleState, dispatch, clearUserDefineFunc }:
 
 const { Option } = Select;
 
-const getDictionaryFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+
+const getSelectCommonFilter = (filterField: any, dictData: any, labelWarrapCol: any) => {
+    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
+    const title = filterField.title || filterField.defaulttitle;
+    return filterField.tagSelect ?
+        <Form.Item label={title}   {...labelWarrapCol} >
+            <Input.Group compact style={{ display: 'flex' }}>
+                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                    <TagSelect expandable={filterField.expandable} expand={!filterField.expandable || filterField.expand} >
+                        {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
+                    </TagSelect>
+                </Form.Item>
+                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                    <Input type="hidden" />
+                </Form.Item>
+            </Input.Group>
+        </Form.Item> : filterField.checkbox ?
+            <Form.Item label={title} {...labelWarrapCol} >
+                <Input.Group compact style={{ display: 'flex' }}>
+                    <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                        <Checkbox.Group style={{ flex: 1 }} options={dictData.map((r: any) => ({ value: r.value, label: r.text }))} />
+                    </Form.Item>
+                    <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                        <Input type="hidden" />
+                    </Form.Item>
+                </Input.Group>
+            </Form.Item> : filterField.radio ?
+                <Form.Item label={title} {...labelWarrapCol} >
+                    <Input.Group compact style={{ display: 'flex' }}>
+                        <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                            <Radio.Group style={{ flex: 1 }} options={dictData.map((r: any) => ({ value: r.value, label: r.text }))} />
+                        </Form.Item>
+                        <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                            <Input type="hidden" />
+                        </Form.Item>
+                    </Input.Group>
+                </Form.Item> : <Form.Item label={title} {...labelWarrapCol} >
+                    <Input.Group compact style={{ display: 'flex' }}>
+                        <Form.Item name={[filterField.fieldname, 'value']} noStyle>
+                            <Select mode="multiple" style={{ flex: 1 }} allowClear optionFilterProp="label">
+                                {dictData.map((rec: any) =>
+                                    <Option value={rec.value} label={rec.label}>{rec.text}</Option>)}
+                            </Select>
+                        </Form.Item>
+                        <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
+                            <Input type="hidden" />
+                        </Form.Item>
+                    </Input.Group>
+                </Form.Item>
+}
+
+/**
+ * 一个字段，根据其所有的值来进行筛选
+ * @param param0 
+ */
+const getComboThisFieldFilter = ({ moduleState, filterField, initValues, form, labelWarrapCol }:
+    { moduleState: ModuleState, filterField: any, initValues: object, form: any, labelWarrapCol: any }): any => {
+    const title = filterField.title || filterField.defaulttitle;
+    initValues[filterField.fieldname] = {
+        property: filterField.fieldname,
+        operator: 'in',
+        value: undefined,
+        title,
+        //comboThisFieldId: filterField.fieldid,
+    };
+
+    const dictData: TextValue[] = getFieldNavigateCountArray(moduleState, filterField).map((rec) => ({
+        value: rec.value,
+        count: rec.count,
+        label: rec.text,
+        text: <span>{rec.text}
+            <span className={styles.filterCount} >{'(' + rec.count + ')'}</span>
+        </span>,
+    }));
+    // if (filterField.allowEmpty)
+    //     dictData.splice(0, 0, { value: 'null', text: '未定义' })
+    if (filterField.isBooleanField) {
+        dictData.forEach((rec: any) => {
+            if (rec.label == '1') rec.label = '是';
+            if (rec.label == '0') rec.label = '否';
+            rec.text = <span>{rec.label}
+                <span className={styles.filterCount} >{'(' + rec.count + ')'}</span>
+            </span>;
+        })
+    }
+    return getSelectCommonFilter(filterField, dictData, labelWarrapCol);
+}
+
+
+const getDictionaryFilter = ({ moduleState, filterField, initValues, form, labelWarrapCol }:
+    { moduleState: ModuleState, filterField: any, initValues: object, form: any, labelWarrapCol: any }): any => {
     const title = filterField.title || filterField.defaulttitle;
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
@@ -193,35 +341,15 @@ const getDictionaryFilter = (filterField: any, initValues: object, form: any, la
         title,
         fDictionaryid: filterField.fDictionaryid,
     };
-    const dictData: TextValue[] = getDictionaryData(filterField.fDictionaryid);
-    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
-    const options = dictData.map((rec: TextValue) => ({ value: rec.value || '', label: rec.text }));
-    return filterField.tagSelect ?
-        <Form.Item label={title}   {...labelWarrapCol} >
-            <Input.Group compact style={{ display: 'flex' }}>
-                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <TagSelect expandable={false} expand={true} >
-                        {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
-                    </TagSelect>
-                </Form.Item>
-                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                    <Input type="hidden" />
-                </Form.Item>
-            </Input.Group>
-        </Form.Item> : <Form.Item label={title} {...labelWarrapCol} >
-            <Input.Group compact style={{ display: 'flex' }}>
-                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <Select mode="multiple" style={{ flex: 1 }} allowClear options={options} optionFilterProp="label">
-                    </Select>
-                </Form.Item>
-                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                    <Input type="hidden" />
-                </Form.Item>
-            </Input.Group>
-        </Form.Item>
+    const dictData: TextValue[] = getDictionaryData(filterField.fDictionaryid).map((rec: any) => ({ ...rec, label: rec.text }));
+    if (filterField.allowEmpty)
+        dictData.splice(0, 0, { value: 'null', text: '未定义', label: '未定义' })
+    addCountToText(dictData, moduleState, filterField);
+    return getSelectCommonFilter(filterField, dictData, labelWarrapCol);
 }
 
-const getManyToOneFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+const getManyToOneFilter = ({ moduleState, filterField, initValues, form, labelWarrapCol }:
+    { moduleState: ModuleState, filterField: any, initValues: object, form: any, labelWarrapCol: any }): any => {
     const title = filterField.title || filterField.defaulttitle;
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
@@ -230,32 +358,13 @@ const getManyToOneFilter = (filterField: any, initValues: object, form: any, lab
         title,
         manyToOneObject: filterField.manyToOneInfo.objectname,
     };
-    const dictData: TextValue[] = getModuleComboDataSource(filterField.manyToOneInfo.objectname);
-    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
-    const options = dictData.map((rec: TextValue) => ({ value: rec.value || '', label: rec.text }));
-    return filterField.tagSelect ?
-        <Form.Item label={title}   {...labelWarrapCol} >
-            <Input.Group compact style={{ display: 'flex' }}>
-                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <TagSelect expandable={true} expand={true} >
-                        {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
-                    </TagSelect>
-                </Form.Item>
-                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                    <Input type="hidden" />
-                </Form.Item>
-            </Input.Group>
-        </Form.Item> : <Form.Item label={title} {...labelWarrapCol} >
-            <Input.Group compact style={{ display: 'flex' }}>
-                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <Select mode="multiple" style={{ flex: 1 }} allowClear options={options} optionFilterProp="label">
-                    </Select>
-                </Form.Item>
-                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                    <Input type="hidden" />
-                </Form.Item>
-            </Input.Group>
-        </Form.Item>
+    const dictData: TextValue[] =
+        getModuleComboDataSource(filterField.manyToOneInfo.objectname).map((rec: any) => ({ ...rec, label: rec.text }));
+    if (filterField.allowEmpty)
+        dictData.splice(0, 0, { value: 'null', text: '未定义', label: '未定义' })
+    addCountToText(dictData, moduleState, filterField);
+    return getSelectCommonFilter(filterField, dictData, labelWarrapCol);
+
 }
 
 
@@ -295,7 +404,8 @@ const getManyToOneTreeFilter = (filterField: any, initValues: object, form: any,
     </Form.Item>
 }
 
-const getBooleanFilter = (filterField: any, initValues: object, form: any, labelWarrapCol: any): any => {
+const getBooleanFilter = ({ moduleState, filterField, initValues, form, labelWarrapCol }:
+    { moduleState: ModuleState, filterField: any, initValues: object, form: any, labelWarrapCol: any }): any => {
     const title = filterField.title || filterField.defaulttitle;
     initValues[filterField.fieldname] = {
         property: filterField.fieldname,
@@ -304,35 +414,10 @@ const getBooleanFilter = (filterField: any, initValues: object, form: any, label
         title,
         type: 'boolean',
     };
-    const dictData: TextValue[] = getBooleanFilterOption(false);
-    /* 在othersetting 中设置 tagSelect : true, 即为tag选择方式，否则为combobox方式  */
-    return filterField.tagSelect ?
-        <Form.Item label={title}   {...labelWarrapCol} >
-            <Input.Group compact style={{ display: 'flex' }}>
-                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <TagSelect expandable={false} expand={true} >
-                        {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
-                    </TagSelect>
-                </Form.Item>
-                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                    <Input type="hidden" />
-                </Form.Item>
-            </Input.Group>
-        </Form.Item> : <Form.Item label={title} {...labelWarrapCol} >
-            <Input.Group compact style={{ display: 'flex' }}>
-                <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <Select mode="multiple" style={{ flex: 1 }} allowClear>
-                        {dictData.map((rec: TextValue) => <Option value={rec.value || ''}>{rec.text}</Option>)}
-                    </Select>
-                </Form.Item>
-                <Form.Item name={[filterField.fieldname, 'operator']} noStyle >
-                    <Input type="hidden" />
-                </Form.Item>
-            </Input.Group>
-        </Form.Item>
+    const dictData: TextValue[] = [...getBooleanFilterOption(!filterField.allowEmpty)];
+    addCountToText(dictData, moduleState, filterField);
+    return getSelectCommonFilter(filterField, dictData, labelWarrapCol);
 }
-
-
 
 export const numberFieldOperator: TextValue[] = [{
     value: 'eq',
@@ -477,6 +562,8 @@ export const changeUserFilterToParam = (userfilter: any, addText: boolean = fals
                     f.value = convertDictionaryValueToText(f.fDictionaryid, f.value, separater);
                 else if (f.type == 'boolean')
                     f.value = getBooleanInValueText(f.value);
+                else if (f.manyToOneTreeObject)
+                    f.value = convertTreeModuleIdValuesToText(f.manyToOneTreeObject, f.value, separater);
                 else if (f.manyToOneObject)
                     f.value = convertModuleIdValuesToText(f.manyToOneObject, f.value, separater);
             }

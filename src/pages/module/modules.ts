@@ -24,14 +24,43 @@ export const getModulTreeDataSource = (moduleName: string): TextValue[] => {
 // 将某些manytoone数组值，转换为文字描述,如果有separator,转换成字符串，否则转换成 数组
 export const convertModuleIdValuesToText = (moduleName: string, values: any[], separator: string | undefined): any => {
     if (!Array.isArray(values))
-        return values;
+        values = [values];
     const data = getModuleComboDataSource(moduleName);
     const arrayResult: any[] = values.map((value: any) => {
         for (let i in data) {
             if (data[i].value == value)
                 return data[i].text;
         }
-        return value;
+        return value == 'null' ? '未定义' : value;
+    })
+    if (separator)
+        return arrayResult.join(separator);
+    else
+        return arrayResult;
+}
+
+
+
+// 将某些manytoone数组值，转换为文字描述,如果有separator,转换成字符串，否则转换成 数组
+export const convertTreeModuleIdValuesToText = (moduleName: string, values: any[], separator: string | undefined): any => {
+    if (!Array.isArray(values))
+        return values;
+    const data: TextValue[] = [];
+    const joinChildren = (array: any) => {
+        array.forEach((r: any) => {
+            data.push(r)
+            if (Array.isArray(r.children) && r.children.length > 0)
+                joinChildren(r.children);
+        });
+
+    }
+    joinChildren(getModulTreeDataSource(moduleName));
+    const arrayResult: any[] = values.map((value: any) => {
+        for (let i in data) {
+            if (data[i].value == value)
+                return data[i].text;
+        }
+        return value == 'null' ? '未定义' : value;
     })
     if (separator)
         return arrayResult.join(separator);
@@ -79,6 +108,7 @@ export const generateModuleInfo = (module: any): ModuleModal => {
         userdefinedsorts: [],
         navigateSchemes: obj.navigateSchemes || [],
         filterSchemes: obj.filterSchemes || {},
+        sortSchemes: obj.sortSchemes || {},
         moduleLimit: {
             hasenable: obj.hasenable,
             hasbrowse: obj.hasbrowse,
@@ -188,7 +218,17 @@ export const getFilterScheme = (moduleInfo: ModuleModal): any => {
     return s.system ? s.system[0] : s.owner ? s.owner[0] : s.othershare ? s.othershare[0] : null
 }
 
-
+export const getSortSchemes = (moduleInfo: ModuleModal): any[] => {
+    let result: any[] = [];
+    const schemes = moduleInfo.sortSchemes;
+    if (schemes.system)
+        result = result.concat(schemes.system)
+    if (schemes.owner)
+        result = result.concat(schemes.owner)
+    if (schemes.othershare)
+        result = result.concat(schemes.othershare)
+    return result;
+}
 
 export const canDelete = (moduleInfo: ModuleModal): boolean => {
     return moduleInfo.moduleLimit.hasdelete && moduleInfo.userLimit.delete;
