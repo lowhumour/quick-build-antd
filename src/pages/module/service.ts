@@ -46,12 +46,13 @@ export async function queryUserLoginLog(data: {
 
 export async function fetchObjectDataWithState(moduleState: ModuleState) {
   return new Promise(function (resolve, reject) {
-    const { moduleName, gridParams, sorts } = moduleState;
+    const { moduleName, gridParams, sorts, sortschemeid } = moduleState;
     const payload: any = { moduleName };
     payload.page = gridParams.curpage;
     payload.limit = gridParams.limit;
     payload.start = gridParams.start;
-
+    if (sortschemeid)
+      payload.sortschemeid = sortschemeid;
     apply(payload, getAllFilterAjaxParam(moduleState));
 
     if (sorts.length) {

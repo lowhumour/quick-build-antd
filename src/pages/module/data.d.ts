@@ -203,6 +203,8 @@ export interface ModuleState {
     monetaryPosition: 'behindnumber' | 'columntitle',
     filters: ModuleFilters,
     sorts: SortModal[],
+    sortschemeid? : string | null,
+    sortMultiple : any,  //{} or {multiple : 1}
     gridParams: {
         curpage: number,                    // 当前页码
         limit: number,                      // 每页记录数

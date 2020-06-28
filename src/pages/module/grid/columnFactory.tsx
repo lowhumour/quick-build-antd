@@ -206,7 +206,7 @@ const getColumn = ({ gridField, fieldDefine, moduleInfo, moduleState, dispatch }
     fieldDefine: fieldDefine,
     gridField: gridField,
     gridFieldId: gridField.columnid, // 加上这个属性，用于在列改变了宽度过后，传到后台
-    sorter: true,
+    sorter: moduleState.sortMultiple,
     menuText: getMenuText(fieldDefine, gridField),
     dataIndex: fieldDefine.fieldname,
     key: fieldDefine.fieldname,
@@ -301,7 +301,7 @@ const getColumn = ({ gridField, fieldDefine, moduleInfo, moduleState, dispatch }
       type: 'string'
     });
 
-    field.sorter = true;
+    field.sorter = moduleState.sortMultiple;
     field.sortOrder = getSortOrder(moduleState.sorts, fn);
     const pModuleInfo = getModuleInfo(fieldDefine.fieldtype);
     field.render = (value: any, record: object, recno: number) =>
@@ -412,7 +412,7 @@ export const getLockedLeftColumns = (moduleInfo: ModuleModal, moduleState: Modul
   if (moduleInfo.moduleLimit.hasattachment && moduleInfo.userLimit.attachment?.query)
     columns.push({
       title: <Tooltip title="附件"><PaperClipOutlined /></Tooltip>,
-      sorter: true,
+      sorter: moduleState.sortMultiple,
       sortOrder: getSortOrder(moduleState.sorts, 'attachmentcount'),
       width: 66,
       dataIndex: 'attachmenttooltip',

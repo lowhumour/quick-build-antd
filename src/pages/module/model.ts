@@ -6,7 +6,7 @@ import {
 } from './service';
 import { getGridColumnSorts } from './grid/sortUtils';
 import { getGridColumnFilters, getColumnFiltersInfo } from './grid/filterUtils';
-import { ModuleState, TextValue, ModuleModal, ModuleFilters, FetchObjectResponse } from './data';
+import { ModuleState, TextValue, ModuleModal, ModuleFilters, FetchObjectResponse, SortModal } from './data';
 import { setModuleInfo, generateModuleInfo, hasModuleInfo, getModuleInfo, getGridDefaultScheme } from './modules';
 import { apply } from '@/utils/utils';
 import { getMonetary } from './grid/monetary';
@@ -30,7 +30,6 @@ export interface ModuleModelType {
         deleteAttachment: Effect;
 
         filterChanged: Effect;  // 各种筛选条件改变后都执行此函数，在改变条件过后，获取数据，然后更新，少掉中间一个步骤
-
     };
     reducers: {
         updateModuleState: Reducer<ModalState>;
@@ -41,7 +40,10 @@ export interface ModuleModelType {
         pageChanged: Reducer<ModalState>;
         pageSizeChanged: Reducer<ModalState>;
 
+        sortMultipleChanged: Reducer<ModalState>;
         columnSortChanged: Reducer<ModalState>;
+        sortSchemeChanged: Reducer<ModalState>;
+        resetSorts: Reducer<ModalState>;
 
         toggleUserFilter: Reducer<ModalState>;
         toggleNavigate: Reducer<ModalState>;
@@ -101,6 +103,8 @@ const Model: ModuleModelType = {
                 selectedTextValue: [],
                 filters: { navigate: [], viewscheme: { title: undefined, viewschemeid: undefined } },
                 sorts: [],
+                sortschemeid: null,
+                sortMultiple: {},
                 gridParams: {
                     curpage: 1,
                     limit: 20,
@@ -181,7 +185,7 @@ const Model: ModuleModelType = {
                     break;
                 case 'clearUserFilter':
                     filters.userfilter = filters.userfilter?.map((filter) => {
-                        const f = {...filter};
+                        const f = { ...filter };
                         delete f.value;
                         delete f.text;
                         return f;
@@ -296,6 +300,30 @@ const Model: ModuleModelType = {
             return result;
         },
 
+        // 单字段和多字段排序的转换 sortMultiple:{} and sortMultiple : {multiple : 1}
+        sortMultipleChanged(state = {}, action) {
+            console.log('sortMultipleChanged', action)
+            const { moduleName, sortMultiple } = action.payload;
+            const result = {
+                ...state
+            };
+            const moduleState: ModuleState = state[moduleName] as ModuleState;
+            const { sorts } = moduleState;
+            if (!sortMultiple.multiple && sorts.length > 1) {
+                //  取消多字段排序，如果有多个字段，只保留第一个
+                result[moduleName] = {
+                    ...moduleState,
+                    sortMultiple,
+                    sorts: [sorts[0]],
+                };
+            } else
+                result[moduleName] = {
+                    ...moduleState,
+                    sortMultiple,
+                };
+            return result;
+        },
+
         // 用户点击grid column 进行排序
         columnSortChanged(state = {}, action) {
             console.log('column sort Changed', action)
@@ -303,15 +331,51 @@ const Model: ModuleModelType = {
             const result = {
                 ...state
             };
-            const sorts = getGridColumnSorts(columnsorter);
+            const sorts: SortModal[] = getGridColumnSorts(columnsorter);
             const moduleState: ModuleState = state[moduleName] as ModuleState;
             result[moduleName] = {
                 ...moduleState,
                 sorts,
-                dataSourceLoadCount: moduleState.dataSourceLoadCount + 1
+                sortschemeid: null,
+                dataSourceLoadCount: moduleState.dataSourceLoadCount + 1,
             };
             return result;
         },
+        // 选择了排序方案
+        sortSchemeChanged(state = {}, action) {
+            console.log('column sort Changed', action)
+            const { moduleName, sortschemeid } = action.payload;
+            const result = {
+                ...state
+            };
+            const moduleState: ModuleState = state[moduleName] as ModuleState;
+            result[moduleName] = {
+                ...moduleState,
+                sorts: [],
+                sortschemeid,
+                dataSourceLoadCount: moduleState.dataSourceLoadCount + 1,
+            };
+            return result;
+        },
+        // 恢复到默认排序
+        resetSorts(state = {}, action) {
+            console.log('reset sort to default', action)
+            const { moduleName } = action.payload;
+            const result = {
+                ...state
+            };
+            const sorts: SortModal[] = [];
+            const moduleState: ModuleState = state[moduleName] as ModuleState;
+            result[moduleName] = {
+                ...moduleState,
+                sorts,
+                sortschemeid: null,
+                dataSourceLoadCount: moduleState.dataSourceLoadCount + 1,
+            };
+            return result;
+        },
+
+
 
         insertRecord(state = {}, action) {
             const { moduleName, record, setCurrRecord } = action.payload;

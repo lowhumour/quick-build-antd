@@ -1,42 +1,90 @@
 import React from 'react';
 import { Dropdown, Menu, Button } from 'antd';
 import { Dispatch } from 'redux';
-import { SortAscendingOutlined, DownOutlined } from '@ant-design/icons';
-import { ModuleState, ModuleModal } from '../data';
+import { SortAscendingOutlined, SortDescendingOutlined, DownOutlined, CheckOutlined } from '@ant-design/icons';
+import { ModuleState, ModuleModal, SortModal } from '../data';
 import { getModuleInfo, getSortSchemes } from '../modules';
 
-
-const menu = (
-    <Menu>
-        <Menu.Item>
-            <a target="_blank" rel="noopener noreferrer" href="http://www.alipay.com/">
-                1st menu item
-        </a>
-        </Menu.Item>
-        <Menu.Item>
-            <a target="_blank" rel="noopener noreferrer" href="http://www.taobao.com/">
-                2nd menu item
-        </a>
-        </Menu.Item>
-        <Menu.Item>
-            <a target="_blank" rel="noopener noreferrer" href="http://www.tmall.com/">
-                3rd menu item
-        </a>
-        </Menu.Item>
-        <Menu.Item danger>a danger item</Menu.Item>
-    </Menu>
-);
+const hiddenIcon = <CheckOutlined style={{ visibility: 'hidden' }} />
 
 const SortInfoButton = ({ moduleState, dispatch }: { moduleState: ModuleState, dispatch: Dispatch }) => {
-    const { moduleName } = moduleState;
+    const { moduleName, } = moduleState;
     const moduleInfo: ModuleModal = getModuleInfo(moduleName);
-    const schemes: any[] = getSortSchemes(moduleInfo);
-    //if (schemes.length < 2) return <span style={{ visibility: 'hidden', width: '0px' }}>1</span>;
+    const sortSchemes = getSortSchemes(moduleInfo);
+    const { sorts } = moduleState;
+    const hassort: boolean = sorts.length > 0 || !!moduleState.sortschemeid;
+    const { multiple } = moduleState.sortMultiple;
+    const menu = (
+        <Menu>
+            <Menu.Item key="reset" disabled={!hassort} onClick={() => {
+                dispatch({
+                    type: 'modules/resetSorts',
+                    payload: {
+                        moduleName
+                    }
+                })
+            }}>
+                恢复默认排序
+            </Menu.Item>
+            <Menu.Divider />
+            {sortSchemes.length > 0 ?
+                <Menu.ItemGroup title="排序方案">{
+                    sortSchemes.map((scheme: any) => {
+                        const { sortschemeid } = scheme;
+                        return <Menu.Item key={sortschemeid}
+                            icon={sortschemeid == moduleState.sortschemeid ? <CheckOutlined /> : hiddenIcon}
+                            onClick={() => {
+                                dispatch({
+                                    type: 'modules/sortSchemeChanged',
+                                    payload: {
+                                        moduleName,
+                                        sortschemeid
+                                    }
+                                })
+                            }}>
+                            {scheme.schemename}
+                        </Menu.Item>
+                    })
+                }</Menu.ItemGroup> : null
+            }
+            {sortSchemes.length > 0 ? <Menu.Divider /> : null}
+            <Menu.Item key="single" icon={multiple ? hiddenIcon : <CheckOutlined />} onClick={() => {
+                dispatch({
+                    type: 'modules/sortMultipleChanged',
+                    payload: {
+                        moduleName,
+                        sortMultiple: {}
+                    }
+                })
+            }}>
+                单字段排段
+            </Menu.Item>
+            <Menu.Item key="mult" icon={multiple ? <CheckOutlined /> : hiddenIcon} onClick={() => {
+                dispatch({
+                    type: 'modules/sortMultipleChanged',
+                    payload: {
+                        moduleName,
+                        sortMultiple: { multiple: 1 }
+                    }
+                })
+            }}>
+                多字段排序
+            </Menu.Item>
+            {sorts.length > 0 ? <Menu.Divider /> : null}
+            {sorts.length > 0 ?
+                <Menu.ItemGroup title="当前排序" >
+                    {sorts.map((sort: SortModal) =>
+                        <Menu.Item key={sort.property}
+                            icon={sort.direction == 'ASC' ? <SortAscendingOutlined /> : <SortDescendingOutlined />}>
+                            {sort.title}
+                        </Menu.Item>)}
+                </Menu.ItemGroup> : null
+            }
+        </Menu>
+    );
     return <Dropdown overlay={menu}>
-        <Button size="small" type="text"><SortAscendingOutlined /><DownOutlined /></Button>
+        <Button size="small" type={hassort ? "link" : "text"}><SortAscendingOutlined /><DownOutlined /></Button>
     </Dropdown>
-
-
 }
 
 export default SortInfoButton;

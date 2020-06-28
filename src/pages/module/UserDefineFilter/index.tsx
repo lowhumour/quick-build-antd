@@ -70,7 +70,7 @@ const getFieldNavigateCountArray = (moduleState: ModuleState, filterField: any):
     const { fieldname, detailid } = filterField;
 
     if (!detailidNavigateCountCache[detailid])
-    detailidNavigateCountCache[detailid] = fetchNavigateTreeDataSync({
+        detailidNavigateCountCache[detailid] = fetchNavigateTreeDataSync({
             moduleName,
             title,
             navigateschemeid: fieldname,
@@ -108,6 +108,7 @@ const addCountToText = (array: any[], moduleState: ModuleState, filterField: any
  *                  expand= !expandable || true|false 
  * checkbox : true  // 使用checkbox多选的方式来进行筛选条件，boolean ,manytoone,dictionary有效
  * radio : true  // 使用radio 单选的方式来进行筛选条件，boolean ,manytoone,dictionary有效
+ * hideCheckAll : true   // tagSelect中不显示“选中所有”的按钮
  */
 
 const OPERATEWIDTH = 90;
@@ -250,7 +251,8 @@ const getSelectCommonFilter = (filterField: any, dictData: any, labelWarrapCol: 
         <Form.Item label={title}   {...labelWarrapCol} >
             <Input.Group compact style={{ display: 'flex' }}>
                 <Form.Item name={[filterField.fieldname, 'value']} noStyle>
-                    <TagSelect expandable={filterField.expandable} expand={!filterField.expandable || filterField.expand} >
+                    <TagSelect hideCheckAll={!!filterField.hideCheckAll} expandable={filterField.expandable}
+                        expand={!filterField.expandable || filterField.expand} >
                         {dictData.map((rec: TextValue) => <TagSelect.Option value={rec.value}>{rec.text}</TagSelect.Option>)}
                     </TagSelect>
                 </Form.Item>
