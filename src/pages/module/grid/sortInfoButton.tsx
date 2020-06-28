@@ -83,7 +83,9 @@ const SortInfoButton = ({ moduleState, dispatch }: { moduleState: ModuleState, d
         </Menu>
     );
     return <Dropdown overlay={menu}>
-        <Button size="small" type={hassort ? "link" : "text"}><SortAscendingOutlined /><DownOutlined /></Button>
+        <Button size="small" type={hassort ? "link" : "text"} style={{padding : '0px'}}>
+            <SortAscendingOutlined /><DownOutlined />
+        </Button>
     </Dropdown>
 }
 

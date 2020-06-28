@@ -608,8 +608,8 @@ const getNumberColumnSearchProps = (dataIndex: any, fieldDefine: ModuleFieldType
                   content={
                     <div><b>列表</b>可以多值，以逗号分隔：<br />例如：100,200,300 表示等于以上三值的数据；
                     <br /><b>列表外</b>可以多值，以逗号分隔：<br />例如：100,200,300 表示不等于以上三值的数据；
-                    <br /><b>区间</b>以二个数值用逗号分隔：<br />例如：100,1000 表示 >=100 并且 &lt;=1000；
-                    <br /><b>区间外</b>以二个数值用逗号分隔：<br />例如：100,1000 表示>100 或者 &lt;1000；
+                    <br /><b>区间</b>以二个数值用逗号分隔：<br />例如：100,1000 表示 &gt;=100 并且 &lt;=1000；
+                    <br /><b>区间外</b>以二个数值用逗号分隔：<br />例如：100,1000 表示&gt;100 或者 &lt;1000；
                 </div>
                   }><InfoCircleOutlined style={{ color: 'blue', margin: 8 }} /></Popover>
               </Input.Group>

@@ -1,10 +1,10 @@
 import React from 'react';
-import { CheckCircleOutlined } from '@ant-design/icons';
-import { Badge, Tooltip, Dropdown, Menu } from 'antd';
+import { CheckSquareOutlined } from '@ant-design/icons';
+import { Badge, Tooltip, Dropdown, Menu, Button } from 'antd';
 import { ModuleState } from '../data';
 import { Dispatch } from 'redux';
 
-const spaceIcon = <CheckCircleOutlined style={{ visibility: 'hidden' }} />;
+const spaceIcon = <CheckSquareOutlined style={{ visibility: 'hidden' }} />;
 
 const SelectionButton = ({ moduleState, dispatch }:
     { moduleState: ModuleState, dispatch: Dispatch }) => {
@@ -16,7 +16,7 @@ const SelectionButton = ({ moduleState, dispatch }:
             type: 'modules/resetSelectedRow',
             payload: {
                 moduleName: moduleState.moduleName,
-                type : key
+                type: key
             },
         })
     };
@@ -29,14 +29,16 @@ const SelectionButton = ({ moduleState, dispatch }:
     if (count)
         return <Tooltip title={`已选中: ${count} 条记录`}>
             <Dropdown overlay={menu} trigger={['click']}>
-                <span style={{ cursor: 'pointer' }}><CheckCircleOutlined />
-                    <Badge count={count} style={{ backgroundColor: '#108ee9', marginLeft: '2px' }} />
-                </span>
+                <Button size="small" type="link" style={{ padding: '0px' }}><CheckSquareOutlined />
+                    <Badge count={count} offset={[-3, -3]} style={{ backgroundColor: '#108ee9' }} />
+                </Button>
             </Dropdown>
         </Tooltip>
     else
         return <Tooltip title='未选中记录'>
-            <CheckCircleOutlined style={{ cursor: 'pointer' }} />
+            <Button size="small" type="text" style={{ padding: '0px' }}>
+                <CheckSquareOutlined style={{ cursor: 'pointer' }} />
+            </Button>
         </Tooltip>
 }
 

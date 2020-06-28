@@ -116,8 +116,8 @@ const ModuleGrid = ({ moduleState, moduleInfo, dispatch, fetchLoading , gridType
         showTotal: (total, range) =>
             <Space >
                 <GridSchemeButton moduleState={moduleState} dispatch={dispatch} />
-                <SortInfoButton moduleState={moduleState} dispatch={dispatch} />
                 <SelectionButton moduleState={moduleState} dispatch={dispatch} />
+                <SortInfoButton moduleState={moduleState} dispatch={dispatch} />
                 {`显示${range[0]}-${range[1]},共${total}条`}
                 {refreshButton}
             </Space>,
